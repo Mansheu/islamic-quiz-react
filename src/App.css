@@ -265,6 +265,45 @@ header h1 {
   color: var(--text-color);
   font-family: "Space Mono", monospace;
   white-space: nowrap; /* Prevent text wrapping */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+/* Navigation icon styling */
+.nav-icon {
+  flex-shrink: 0;
+  opacity: 0.8;
+  transition: opacity 0.3s ease;
+}
+
+.nav-tab:hover .nav-icon {
+  opacity: 1;
+}
+
+.nav-tab.active .nav-icon {
+  opacity: 1;
+}
+
+/* Feature and guest icons */
+.feature-icon {
+  color: var(--success-color);
+  margin-right: 8px;
+  vertical-align: middle;
+}
+
+.guest-icon {
+  color: #721c24;
+  margin-right: 8px;
+  vertical-align: middle;
+  flex-shrink: 0;
+}
+
+/* Button icons */
+.btn-icon {
+  margin-right: 6px;
+  vertical-align: middle;
 }
 
 .nav-tab:hover {

@@ -14,6 +14,7 @@ import { TimedLeaderboard } from './components/TimedLeaderboard';
 import Leaderboard from './components/Leaderboard';
 import AdminDashboard from './components/AdminDashboard';
 import ThemeToggle from './components/ThemeToggle';
+import { TargetIcon, LightningIcon, TrophyIcon, UserIcon } from './components/icons';
 import { AuthModal } from './components/AuthModal';
 import { UserProfile } from './components/UserProfile';
 import { AuthPrompt } from './components/AuthPrompt';
@@ -179,7 +180,7 @@ function App() {
                 className={`nav-tab ${currentView === 'quiz' ? 'active' : ''}`}
                 onClick={() => handleViewChange('quiz')}
               >
-                🎯 Regular Quiz
+                <TargetIcon size={16} className="nav-icon" /> Regular Quiz
               </button>
               {/* Only show timed challenge if user is signed in */}
               {user && (
@@ -187,14 +188,14 @@ function App() {
                   className={`nav-tab ${currentView === 'timed-challenge' ? 'active' : ''}`}
                   onClick={() => handleViewChange('timed-challenge')}
                 >
-                  ⚡ Timed Challenge
+                  <LightningIcon size={16} className="nav-icon" /> Timed Challenge
                 </button>
               )}
               <button 
                 className={`nav-tab ${currentView === 'leaderboard' ? 'active' : ''}`}
                 onClick={() => handleViewChange('leaderboard')}
               >
-                🏆 Leaderboard
+                <TrophyIcon size={16} className="nav-icon" /> Leaderboard
               </button>
               {user && isAdmin(user.email) && (
                 <button 

@@ -1,4 +1,5 @@
 import React from 'react';
+import { LightningIcon, TargetIcon, CheckIcon, UserIcon } from './icons';
 import './AuthPrompt.css';
 
 interface AuthPromptProps {
@@ -23,7 +24,7 @@ export const AuthPrompt: React.FC<AuthPromptProps> = ({
         
         <div className="auth-prompt-content">
           <div className="auth-prompt-icon">
-            {quizType === 'timed' ? '⚡' : '🎯'}
+            {quizType === 'timed' ? <LightningIcon size={32} /> : <TargetIcon size={32} />}
           </div>
           
           <h4>
@@ -42,7 +43,7 @@ export const AuthPrompt: React.FC<AuthPromptProps> = ({
           
           <div className="auth-options">
             <div className="auth-option recommended">
-              <div className="option-icon">✅</div>
+              <div className="option-icon"><CheckIcon size={24} /></div>
               <div className="option-content">
                 <h5>Sign In / Sign Up</h5>
                 <p>Save your scores, track progress, compete on leaderboards, and access all features!</p>
@@ -51,7 +52,7 @@ export const AuthPrompt: React.FC<AuthPromptProps> = ({
             
             {quizType === 'regular' && (
               <div className="auth-option">
-                <div className="option-icon">👤</div>
+                <div className="option-icon"><UserIcon size={24} /></div>
                 <div className="option-content">
                   <h5>Continue as Guest</h5>
                   <p>Play without saving scores. Your progress won't be saved to leaderboards.</p>
@@ -66,7 +67,7 @@ export const AuthPrompt: React.FC<AuthPromptProps> = ({
             </button>
             {quizType === 'regular' && (
               <button className="btn btn-secondary" onClick={onContinueAsGuest}>
-                👤 Continue as Guest
+                <UserIcon size={16} className="btn-icon" /> Continue as Guest
               </button>
             )}
             <button className="btn btn-outline" onClick={onCancel}>

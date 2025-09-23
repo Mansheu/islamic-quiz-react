@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useQuizStore } from '../store';
+import { UserIcon, CheckIcon } from './icons';
 
 interface QuizSetupProps {
   isGuestMode?: boolean;
@@ -31,7 +32,7 @@ const QuizSetup: React.FC<QuizSetupProps> = ({ isGuestMode = false }) => {
             border: '1px solid #ffeaa7',
             fontSize: '14px'
           }}>
-            👤 <strong>Guest Mode:</strong> Your scores won't be saved to leaderboards. Sign in to track your progress!
+                        <UserIcon size={16} className="guest-icon" /> <strong>Guest Mode:</strong> Your scores won't be saved to leaderboards. Sign in to track your progress!
           </div>
         )}
         
@@ -60,11 +61,11 @@ const QuizSetup: React.FC<QuizSetupProps> = ({ isGuestMode = false }) => {
         <div className="quiz-info">
           <h3>Quiz Features:</h3>
           <ul>
-            <li>✅ Multiple categories covering various Islamic topics</li>
-            <li>✅ Detailed explanations for each answer</li>
-            <li>✅ Progress tracking</li>
-            <li>✅ Score calculation</li>
-            <li>✅ 10 randomized questions per quiz</li>
+            <li><CheckIcon size={16} className="feature-icon" /> Multiple categories covering various Islamic topics</li>
+            <li><CheckIcon size={16} className="feature-icon" /> Detailed explanations for each answer</li>
+            <li><CheckIcon size={16} className="feature-icon" /> Progress tracking</li>
+            <li><CheckIcon size={16} className="feature-icon" /> Score calculation</li>
+            <li><CheckIcon size={16} className="feature-icon" /> 10 randomized questions per quiz</li>
           </ul>
         </div>
       </div>
