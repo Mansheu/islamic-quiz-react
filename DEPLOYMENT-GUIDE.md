@@ -23,6 +23,22 @@ VITE_FIREBASE_MEASUREMENT_ID = G-LYE4YP4EW2
 
 5. **Redeploy**: Go to **Deployments** tab and click **Redeploy** on the latest deployment
 
+## 🔐 Firebase Domain Authorization
+
+**IMPORTANT**: After deploying, you need to authorize your deployment domain in Firebase:
+
+1. **Go to Firebase Console**: https://console.firebase.google.com/
+2. **Select your project**: `islamic-quiz-app-825c0`  
+3. **Go to Authentication** → **Settings** → **Authorized domains**
+4. **Click "Add domain"**
+5. **Add your deployment URL**:
+   - Vercel: `your-project-name.vercel.app`
+   - Netlify: `your-site-name.netlify.app`
+   - GitHub Pages: `username.github.io`
+6. **Click "Add"**
+
+**Without this step, Google Sign-In will fail with "Auth/unauthorized-domain" error.**
+
 ## 🌍 Netlify
 
 1. **Go to Netlify Dashboard**: https://app.netlify.com/
@@ -79,12 +95,24 @@ Then add the environment variables in **GitHub Repository Settings** > **Secrets
 
 ## 🔍 Troubleshooting
 
-If your app is still blank:
-
+### **Blank Page Issues:**
 1. **Check Browser Console**: Press F12 and look for Firebase errors
 2. **Verify Environment Variables**: Make sure all variables are set correctly
 3. **Redeploy**: After adding variables, always redeploy/rebuild
 4. **Check Domain**: Some deployment URLs may take a few minutes to update
+
+### **Google Sign-In Issues:**
+- **Error: "Auth/unauthorized-domain"**
+  - **Solution**: Add your deployment domain to Firebase authorized domains (see above)
+- **Error: "Auth/popup-blocked"**
+  - **Solution**: Allow popups for your site or try sign-in redirect instead
+- **Error: "Auth/network-request-failed"**
+  - **Solution**: Check if Firebase config variables are correct
+
+### **General Auth Issues:**
+1. **Verify Firebase Project**: Make sure all environment variables match your Firebase project
+2. **Check Firebase Rules**: Ensure Firestore and Storage rules allow authenticated users
+3. **Clear Browser Cache**: Sometimes cached data causes issues
 
 ## ⚡ Quick Fix
 
