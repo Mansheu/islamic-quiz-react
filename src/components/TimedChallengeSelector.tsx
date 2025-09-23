@@ -1,6 +1,5 @@
 import React from 'react';
 import { timedChallenges, useTimedChallengeStore, getGradeColor } from '../store/timedChallenge';
-import { ClockIcon, SparklesIcon, BookIcon, TrophyIcon, TargetIcon, ChartIcon, LightningIcon, UserIcon } from './icons';
 import './TimedChallengeSelector.css';
 
 interface TimedChallengeSelectorProps {
@@ -28,7 +27,7 @@ export const TimedChallengeSelector: React.FC<TimedChallengeSelectorProps> = ({ 
   return (
     <div className="timed-challenge-selector">
       <div className="selector-header">
-        <h1><LightningIcon size={24} className="header-icon" /> Timed Challenges</h1>
+        <h1>⚡ Timed Challenges</h1>
         <p className="selector-subtitle">
           Test your knowledge under pressure! Complete challenges quickly for bonus points.
         </p>

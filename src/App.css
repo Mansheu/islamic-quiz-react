@@ -306,22 +306,6 @@ header h1 {
   vertical-align: middle;
 }
 
-/* Inline and section icons */
-.inline-icon {
-  vertical-align: middle;
-  margin-left: 4px;
-}
-
-.header-icon {
-  margin-right: 8px;
-  vertical-align: middle;
-}
-
-.section-icon {
-  margin-right: 8px;
-  vertical-align: middle;
-}
-
 .nav-tab:hover {
   background: rgba(var(--accent-color), 0.15);
   transform: translateY(-2px);

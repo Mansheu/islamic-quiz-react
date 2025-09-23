@@ -3,7 +3,6 @@ import { useTimedChallengeStore, getGradeColor } from '../store/timedChallenge';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth } from '../firebase/config';
 import { GuestScoreNotification } from './GuestScoreNotification';
-import { TargetIcon, StarIcon, CelebrationIcon, BooksIcon, PrayingHandsIcon, ChartIcon, CheckIcon, ChartBarIcon, TrophyIcon } from './icons';
 import './ChallengeResults.css';
 
 export const ChallengeResults: React.FC = () => {
@@ -39,21 +38,21 @@ export const ChallengeResults: React.FC = () => {
     }
   };
 
-  const getPerformanceMessage = (grade: string): React.ReactElement => {
+  const getPerformanceMessage = (grade: string): string => {
     switch (grade) {
-      case 'S': return <><StarIcon size={20} className="inline-icon" /> You are a true Islamic scholar!</>;
-      case 'A': return <><CelebrationIcon size={20} className="inline-icon" /> Mashallah! Excellent performance!</>;
-      case 'B': return <><CheckIcon size={20} className="inline-icon" /> Good job! Keep up the great work!</>;
-      case 'C': return <><TargetIcon size={20} className="inline-icon" /> Not bad! There's room for improvement!</>;
-      case 'D': return <><BooksIcon size={20} className="inline-icon" /> Keep practicing! You'll get better!</>;
-      default: return <><PrayingHandsIcon size={20} className="inline-icon" /> Keep learning and improving!</>;
+      case 'S': return 'You are a true Islamic scholar! 🌟';
+      case 'A': return 'Mashallah! Excellent performance! 🎉';
+      case 'B': return 'Good job! Keep up the great work! 👏';
+      case 'C': return 'Not bad! There\'s room for improvement! 💪';
+      case 'D': return 'Keep practicing! You\'ll get better! 📚';
+      default: return 'Keep learning and improving! 🤲';
     }
   };
 
   return (
     <div className="challenge-results">
       <div className="results-header">
-        <h1><TargetIcon size={24} className="header-icon" /> Challenge Complete!</h1>
+        <h1>🎯 Challenge Complete!</h1>
         <p className="results-subtitle">Here's how you performed</p>
       </div>
 
@@ -75,17 +74,17 @@ export const ChallengeResults: React.FC = () => {
 
       <div className="score-breakdown">
         <div className="breakdown-card">
-          <h3><ChartBarIcon size={20} className="section-icon" /> Score Breakdown</h3>
+          <h3>📊 Score Breakdown</h3>
           <div className="breakdown-grid">
             <div className="breakdown-item">
-              <span className="breakdown-icon"><TargetIcon size={20} /></span>
+              <span className="breakdown-icon">🎯</span>
               <div className="breakdown-details">
                 <span className="breakdown-label">Final Score</span>
                 <span className="breakdown-value">{results.score} pts</span>
               </div>
             </div>
             <div className="breakdown-item">
-              <span className="breakdown-icon"><CheckIcon size={20} /></span>
+              <span className="breakdown-icon">✅</span>
               <div className="breakdown-details">
                 <span className="breakdown-label">Correct Answers</span>
                 <span className="breakdown-value">
@@ -94,7 +93,7 @@ export const ChallengeResults: React.FC = () => {
               </div>
             </div>
             <div className="breakdown-item">
-              <span className="breakdown-icon"><ChartIcon size={20} /></span>
+              <span className="breakdown-icon">📈</span>
               <div className="breakdown-details">
                 <span className="breakdown-label">Accuracy</span>
                 <span className="breakdown-value">{results.accuracy}%</span>
@@ -112,7 +111,7 @@ export const ChallengeResults: React.FC = () => {
       </div>
 
       <div className="grade-scale">
-        <h3><TrophyIcon size={20} className="section-icon" /> Grade Scale</h3>
+        <h3>🏆 Grade Scale</h3>
         <div className="scale-grid">
           <div className={`scale-item ${results.grade === 'S' ? 'achieved' : ''}`}>
             <span 
@@ -187,8 +186,8 @@ export const ChallengeResults: React.FC = () => {
       <div className="encouragement">
         <p>
           {results.grade >= 'B' ? 
-            <span>Keep up the excellent work! Your Islamic knowledge is growing stronger! <PrayingHandsIcon size={20} className="inline-icon" /></span> :
-            <span>Every challenge makes you stronger! Keep learning and practicing! <BooksIcon size={20} className="inline-icon" /></span>
+            "Keep up the excellent work! Your Islamic knowledge is growing stronger! 🤲" :
+            "Every challenge makes you stronger! Keep learning and practicing! 📚"
           }
         </p>
       </div>
