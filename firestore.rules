@@ -1,0 +1,57 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Users collection - leaderboard needs to read all users, users can write their own
+    match /users/{userId} {
+      // Allow authenticated users to read all users for leaderboards
+      allow read: if request.auth != null;
+      // Allow users to write only their own data
+      allow write: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // Quiz results - users can write their own, authenticated users can read for leaderboards
+    match /quizResults/{userId} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // Timed challenge results - similar to quiz results
+    match /timedChallenges/{userId} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // Leaderboard collections - read for all authenticated users
+    match /leaderboard/{document=**} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && 
+        request.auth.uid == resource.data.userId;
+    }
+    
+    // Public quiz questions - read only for authenticated users
+    match /questions/{document=**} {
+      allow read: if request.auth != null;
+      allow write: if false; // Questions managed via admin panel only
+    }
+    
+    // Admin-only collections - full access for admin users
+    match /admin/{document=**} {
+      allow read, write: if request.auth != null && 
+        request.auth.token.email in ['babakartijaniyshaykhaniy@gmail.com', 'admin@mansheu.com'];
+    }
+    
+    // User profiles and settings
+    match /userProfiles/{userId} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // Allow admins to read/write all collections for management
+    match /{document=**} {
+      allow read, write: if request.auth != null && 
+        request.auth.token.email in ['babakartijaniyshaykhaniy@gmail.com', 'admin@mansheu.com'];
+    }
+    }
+  }
+}
