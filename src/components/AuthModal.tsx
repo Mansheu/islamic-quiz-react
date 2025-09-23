@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import PasswordReset from './PasswordReset';
 import { signInWithEmail, signUpWithEmail, signInWithGoogle } from '../firebase/auth';
 import './AuthModal.css';
 
@@ -15,7 +14,6 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
   const [displayName, setDisplayName] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [showPasswordReset, setShowPasswordReset] = useState(false);
 
   if (!isOpen) return null;
 
