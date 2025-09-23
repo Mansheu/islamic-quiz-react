@@ -1,5 +1,6 @@
 import React from 'react';
 import { useTimedChallengeStore, timedChallenges, getGradeColor } from '../store/timedChallenge';
+import { TrophyIcon, CheckIcon, TargetIcon, ChartBarIcon, GameControllerIcon, StarIcon, ChartIcon } from './icons';
 import './TimedLeaderboard.css';
 
 export const TimedLeaderboard: React.FC = () => {
@@ -24,7 +25,7 @@ export const TimedLeaderboard: React.FC = () => {
   return (
     <div className="timed-leaderboard">
       <div className="leaderboard-header">
-        <h1>🏆 Timed Challenge Records</h1>
+        <h1><TrophyIcon size={24} className="header-icon" /> Timed Challenge Records</h1>
         <p className="leaderboard-subtitle">
           Your personal best scores for each challenge
         </p>
@@ -69,7 +70,7 @@ export const TimedLeaderboard: React.FC = () => {
 
                     <div className="record-stats">
                       <div className="record-stat">
-                        <span className="stat-icon">✅</span>
+                        <span className="stat-icon"><CheckIcon size={20} /></span>
                         <div>
                           <span className="stat-label">Correct</span>
                           <span className="stat-value">
@@ -96,7 +97,7 @@ export const TimedLeaderboard: React.FC = () => {
                   </>
                 ) : (
                   <div className="no-record">
-                    <span className="no-record-icon">🎯</span>
+                    <span className="no-record-icon"><TargetIcon size={24} /></span>
                     <p className="no-record-text">No attempts yet</p>
                     <p className="no-record-sub">Take this challenge to set your record!</p>
                   </div>
@@ -109,17 +110,17 @@ export const TimedLeaderboard: React.FC = () => {
 
       {Object.keys(personalBests).length > 0 && (
         <div className="overall-stats">
-          <h2>📊 Overall Statistics</h2>
+          <h2><ChartBarIcon size={20} className="section-icon" /> Overall Statistics</h2>
           <div className="overall-grid">
             <div className="overall-item">
-              <span className="overall-icon">🎮</span>
+              <span className="overall-icon"><GameControllerIcon size={24} /></span>
               <div>
                 <span className="overall-label">Challenges Completed</span>
                 <span className="overall-value">{Object.keys(personalBests).length}</span>
               </div>
             </div>
             <div className="overall-item">
-              <span className="overall-icon">🏆</span>
+              <span className="overall-icon"><TrophyIcon size={24} /></span>
               <div>
                 <span className="overall-label">Highest Score</span>
                 <span className="overall-value">
@@ -128,7 +129,7 @@ export const TimedLeaderboard: React.FC = () => {
               </div>
             </div>
             <div className="overall-item">
-              <span className="overall-icon">⭐</span>
+              <span className="overall-icon"><StarIcon size={24} /></span>
               <div>
                 <span className="overall-label">Best Grade</span>
                 <span 
@@ -154,7 +155,7 @@ export const TimedLeaderboard: React.FC = () => {
               </div>
             </div>
             <div className="overall-item">
-              <span className="overall-icon">📈</span>
+              <span className="overall-icon"><ChartIcon size={24} /></span>
               <div>
                 <span className="overall-label">Average Accuracy</span>
                 <span className="overall-value">
@@ -171,7 +172,7 @@ export const TimedLeaderboard: React.FC = () => {
 
       {Object.keys(personalBests).length === 0 && (
         <div className="empty-state">
-          <span className="empty-icon">🎯</span>
+          <span className="empty-icon"><TargetIcon size={48} /></span>
           <h3>No records yet!</h3>
           <p>Complete timed challenges to see your personal bests here.</p>
         </div>
