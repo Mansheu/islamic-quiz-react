@@ -7,36 +7,36 @@ import type { TimedChallenge, ChallengeResult, TimedChallengeState } from '../ty
 export const timedChallenges: TimedChallenge[] = [
   {
     id: 'speed-5',
-    name: 'Speed Run',
+    name: '💨 Speed Run ',
     description: 'Quick 5-question challenge to test your reflexes',
     timeLimit: 60, // 1 minute
     questionCount: 5,
     scoreMultiplier: 1.2,
     difficulty: 'easy',
     topic: 'Mixed',
-    icon: '⚡'
+    icon: ''
   },
   {
     id: 'lightning-10',
-    name: 'Lightning Round',
+    name: '⚡ Lightning Round',
     description: 'Fast-paced 10 questions in 2 minutes',
     timeLimit: 120, // 2 minutes
     questionCount: 10,
     scoreMultiplier: 1.5,
     difficulty: 'medium',
     topic: 'Mixed',
-    icon: '⚡'
+    icon: ''
   },
   {
     id: 'blitz-15',
-    name: 'Knowledge Blitz',
+    name: '🔥 Knowledge Blitz',
     description: 'Ultimate 15-question challenge in 3 minutes',
     timeLimit: 180, // 3 minutes
     questionCount: 15,
     scoreMultiplier: 2.0,
     difficulty: 'hard',
     topic: 'Mixed',
-    icon: '🔥'
+    icon: ''
   }
 ];
 

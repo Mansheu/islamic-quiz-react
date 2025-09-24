@@ -74,7 +74,7 @@
 
 .auth-option.recommended {
   border-color: var(--primary-color);
-  background: rgba(171, 60, 252, 0.05);
+  background: rgba(var(--primary-color-rgb), 0.05);
 }
 
 .auth-option:hover {
@@ -124,7 +124,7 @@
 
 .auth-prompt-actions .btn-primary:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(171, 60, 252, 0.4);
+  box-shadow: 0 6px 20px rgba(var(--primary-color-rgb), 0.4);
 }
 
 .auth-prompt-actions .btn-secondary {
@@ -162,7 +162,7 @@
 
 /* Dark mode styles */
 body.dark .auth-prompt-modal {
-  background: #2b2438;
+  background: #253D2C;
   color: white;
 }
 
@@ -177,7 +177,7 @@ body.dark .auth-option {
 
 body.dark .auth-option.recommended {
   border-color: var(--primary-color);
-  background: rgba(171, 60, 252, 0.15);
+  background: rgba(var(--primary-color-rgb), 0.15);
 }
 
 body.dark .option-content h5 {

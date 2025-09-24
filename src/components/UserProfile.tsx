@@ -296,23 +296,25 @@ export const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose }) => 
           {!isEditing ? (
             // View Mode
             <>
-              <div className="user-info">
-                <div className="avatar-section">
+              <div className="profile-card-modern">
+                <div className="profile-card-background">
                   {profileData?.photoURL ? (
-                    <img src={profileData.photoURL} alt="Profile" className="user-avatar" />
+                    <img src={profileData.photoURL} alt="Profile" className="profile-card-image" />
                   ) : (
-                    <div className="user-avatar-placeholder">
+                    <div className="profile-card-placeholder">
                       {(profileData?.displayName || user.email || 'U').charAt(0).toUpperCase()}
                     </div>
                   )}
                 </div>
                 
-                <div className="user-details">
-                  <h3>{profileData?.displayName || 'Anonymous'}</h3>
-                  <p>{user.email}</p>
-                  {profileData?.location && (
-                    <p className="user-location">📍 {profileData.location}</p>
-                  )}
+                <div className="profile-card-content">
+                  <h2>{profileData?.displayName || 'Anonymous User'}</h2>
+                  <div className="profile-card-details">
+                    <p className="profile-email">✉️ {user.email}</p>
+                    {profileData?.location && (
+                      <p className="profile-location">📍 {profileData.location}</p>
+                    )}
+                  </div>
                 </div>
               </div>
 

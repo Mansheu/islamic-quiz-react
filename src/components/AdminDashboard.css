@@ -53,11 +53,11 @@
 .admin-tabs {
   display: flex;
   gap: 5px;
-  background: rgba(var(--accent-color), 0.1);
+  background: rgba(var(--accent-color-rgb), 0.1);
   padding: 6px;
   border-radius: 12px;
   margin-bottom: 25px;
-  border: 1px solid rgba(var(--accent-color), 0.2);
+  border: 1px solid rgba(var(--accent-color-rgb), 0.2);
 }
 
 .admin-tab {
@@ -71,18 +71,18 @@
   cursor: pointer;
   transition: all 0.3s ease;
   color: var(--text-color);
-  font-family: "Space Mono", monospace;
+  font-family: "DM Sans", sans-serif;
 }
 
 .admin-tab:hover {
-  background: rgba(var(--accent-color), 0.15);
+  background: rgba(var(--accent-color-rgb), 0.15);
   transform: translateY(-2px);
 }
 
 .admin-tab.active {
   background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
   color: white;
-  box-shadow: 0 4px 12px rgba(var(--primary-color), 0.3);
+  box-shadow: 0 4px 12px rgba(var(--primary-color-rgb), 0.3);
 }
 
 /* Admin Content */
@@ -141,8 +141,8 @@
 }
 
 .admin-section {
-  background: rgba(var(--accent-color), 0.05);
-  border: 1px solid rgba(var(--accent-color), 0.15);
+  background: rgba(var(--accent-color-rgb), 0.05);
+  border: 1px solid rgba(var(--accent-color-rgb), 0.15);
   border-radius: 12px;
   padding: 20px;
 }
@@ -165,7 +165,7 @@
   align-items: center;
   gap: 12px;
   padding: 8px 0;
-  border-bottom: 1px solid rgba(var(--accent-color), 0.1);
+  border-bottom: 1px solid rgba(var(--accent-color-rgb), 0.1);
 }
 
 .topic-item:last-child {
@@ -202,7 +202,7 @@
   align-items: center;
   gap: 12px;
   padding: 8px 0;
-  border-bottom: 1px solid rgba(var(--accent-color), 0.1);
+  border-bottom: 1px solid rgba(var(--accent-color-rgb), 0.1);
   font-size: 13px;
 }
 
@@ -323,7 +323,7 @@
   cursor: pointer;
   font-weight: bold;
   transition: all 0.3s ease;
-  font-family: "Space Mono", monospace;
+  font-family: "DM Sans", sans-serif;
 }
 
 .btn-small.btn-secondary {

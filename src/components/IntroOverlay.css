@@ -1,0 +1,248 @@
+/* Modern Welcome Page */
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&display=swap');
+
+.welcome-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #ffffff 0%, #CFFFDC 100%);
+  min-height: 100vh;
+  padding: 20px;
+}
+
+@media (prefers-color-scheme: dark) {
+  .welcome-overlay { 
+    background: linear-gradient(135deg, #253D2C 0%, #2E6F40 100%); 
+  }
+}
+
+.welcome-container {
+  text-align: center;
+  max-width: 500px;
+  width: 100%;
+  opacity: 0;
+  transform: translateY(30px);
+  transition: all 0.8s cubic-bezier(0.2, 0.6, 0.2, 1);
+}
+
+.welcome-container.loaded {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Branding Section */
+.welcome-branding {
+  margin-bottom: 3rem;
+}
+
+.welcome-title {
+  font-family: 'DM Sans', system-ui, sans-serif;
+  font-size: clamp(2.5rem, 8vw, 4rem);
+  font-weight: 800;
+  line-height: 1.1;
+  color: #253D2C;
+  margin: 0 0 0.5rem 0;
+  text-shadow: 0 2px 20px rgba(37, 61, 44, 0.15);
+  animation: titleSlideIn 1s ease 0.3s both;
+}
+
+@media (prefers-color-scheme: dark) {
+  .welcome-title { color: #ffffff; }
+}
+
+.welcome-subtitle {
+  font-family: 'DM Sans', system-ui, sans-serif;
+  font-size: clamp(1.1rem, 3vw, 1.4rem);
+  font-weight: 400;
+  color: #2E6F40;
+  margin: 0;
+  opacity: 0.8;
+  animation: subtitleSlideIn 1s ease 0.6s both;
+}
+
+@media (prefers-color-scheme: dark) {
+  .welcome-subtitle { color: #CFFFDC; }
+}
+
+/* Social Media Icons */
+.welcome-socials {
+  display: flex;
+  justify-content: center;
+  gap: 1.5rem;
+  margin-bottom: 3rem;
+  animation: socialsSlideIn 1s ease 0.9s both;
+}
+
+.social-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 50px;
+  height: 50px;
+  border-radius: 12px;
+  background: rgba(46, 111, 64, 0.1);
+  color: #2E6F40;
+  text-decoration: none;
+  transition: all 0.3s cubic-bezier(0.2, 0.6, 0.2, 1);
+  border: 2px solid transparent;
+}
+
+@media (prefers-color-scheme: dark) {
+  .social-icon {
+    background: rgba(207, 255, 220, 0.1);
+    color: #CFFFDC;
+  }
+}
+
+.social-icon:hover {
+  transform: translateY(-3px) scale(1.05);
+  background: #2E6F40;
+  color: #ffffff;
+  border-color: #2E6F40;
+  box-shadow: 0 8px 25px rgba(46, 111, 64, 0.25);
+}
+
+@media (prefers-color-scheme: dark) {
+  .social-icon:hover {
+    background: #CFFFDC;
+    color: #253D2C;
+    border-color: #CFFFDC;
+  }
+}
+
+/* Specific social icon colors on hover */
+.social-icon.facebook:hover { background: #1877F2; border-color: #1877F2; }
+.social-icon.instagram:hover { background: #E4405F; border-color: #E4405F; }
+.social-icon.tiktok:hover { background: #000000; border-color: #000000; }
+.social-icon.twitter:hover { background: #000000; border-color: #000000; }
+
+/* Action Section */
+.welcome-action {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  animation: actionSlideIn 1s ease 1.2s both;
+}
+
+.welcome-go-button {
+  font-family: 'DM Sans', system-ui, sans-serif;
+  font-size: 1.25rem;
+  font-weight: 700;
+  background: #2E6F40;
+  color: #ffffff;
+  border: none;
+  border-radius: 50px;
+  padding: 1rem 2rem;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.2, 0.6, 0.2, 1);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  box-shadow: 0 4px 20px rgba(46, 111, 64, 0.3);
+  min-width: 140px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.welcome-go-button:hover {
+  transform: translateY(-2px) scale(1.02);
+  background: #253D2C;
+  box-shadow: 0 8px 30px rgba(46, 111, 64, 0.4);
+}
+
+.welcome-go-button:hover .button-arrow {
+  transform: translateX(4px);
+}
+
+.welcome-go-button:active {
+  transform: translateY(0) scale(0.98);
+  box-shadow: 0 4px 15px rgba(46, 111, 64, 0.3);
+}
+
+.button-arrow {
+  transition: transform 0.3s cubic-bezier(0.2, 0.6, 0.2, 1);
+  animation: arrowPulse 2s infinite ease-in-out;
+}
+
+/* Animated Cursor - Remove since arrow is now in button */
+
+/* Keyframe Animations */
+@keyframes titleSlideIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes subtitleSlideIn {
+  from { opacity: 0; transform: translateY(15px); }
+  to { opacity: 0.8; transform: translateY(0); }
+}
+
+@keyframes socialsSlideIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes actionSlideIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes arrowPulse {
+  0%, 100% { 
+    transform: translateX(0); 
+    opacity: 0.8; 
+  }
+  50% { 
+    transform: translateX(4px); 
+    opacity: 1; 
+  }
+}
+
+/* Responsive Design */
+@media (max-width: 480px) {
+  .welcome-overlay {
+    padding: 15px;
+  }
+  
+  .welcome-branding {
+    margin-bottom: 2rem;
+  }
+  
+  .welcome-socials {
+    gap: 1rem;
+    margin-bottom: 2rem;
+  }
+  
+  .social-icon {
+    width: 45px;
+    height: 45px;
+  }
+  
+  .welcome-go-button {
+    padding: 0.875rem 2rem;
+    font-size: 1.1rem;
+    min-width: 120px;
+  }
+}
+
+@media (max-width: 380px) {
+  .welcome-socials {
+    gap: 0.75rem;
+  }
+  
+  .social-icon {
+    width: 40px;
+    height: 40px;
+  }
+  
+  .social-icon svg {
+    width: 20px;
+    height: 20px;
+  }
+}

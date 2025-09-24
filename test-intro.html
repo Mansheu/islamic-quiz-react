@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Intro Animation - Updated</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        code { background: #f4f4f4; padding: 4px 8px; border-radius: 4px; }
+        h2 { color: #2E6F40; }
+        .button { 
+            background: #2E6F40; 
+            color: white; 
+            padding: 10px 20px; 
+            border: none; 
+            border-radius: 8px; 
+            cursor: pointer; 
+            margin: 10px 5px; 
+        }
+        .button:hover { background: #253D2C; }
+    </style>
+</head>
+<body>
+    <h1>🕌 Test New Intro Animation</h1>
+    
+    <h2>✨ Updated Intro Features:</h2>
+    <ul>
+        <li><strong>Text:</strong> "Quiz Hub" → "By" → "Mansheu Dawah"</li>
+        <li><strong>Animation:</strong> 5 overlapping duplicates per text</li>
+        <li><strong>Motion:</strong> Bottom-to-top fade in, then top-to-bottom fade out</li>
+        <li><strong>Font:</strong> Inter/Poppins for modern look</li>
+        <li><strong>Timing:</strong> ~6.8 seconds total, then auto-opens main app</li>
+    </ul>
+    
+    <h2>🧪 Test the Animation:</h2>
+    <button class="button" onclick="clearIntro()">Clear Intro Flag & Test</button>
+    <button class="button" onclick="checkFlag()">Check Current Flag</button>
+    <button class="button" onclick="openApp()">Open App</button>
+    
+    <p id="status"></p>
+    
+    <h2>📱 Manual Instructions:</h2>
+    <ol>
+        <li>Open browser Developer Tools (F12)</li>
+        <li>Go to Console tab</li>
+        <li>Type: <code>localStorage.removeItem('dqh_intro_v2')</code></li>
+        <li>Press Enter</li>
+        <li>Refresh the app page to see the new intro!</li>
+    </ol>
+
+    <script>
+        function clearIntro() {
+            localStorage.removeItem('dqh_intro_v2');
+            document.getElementById('status').innerHTML = '✅ Intro flag cleared! Refresh the app to see animation.';
+            setTimeout(() => {
+                window.open('http://localhost:5174/', '_blank');
+            }, 1000);
+        }
+        
+        function checkFlag() {
+            const flag = localStorage.getItem('dqh_intro_v2');
+            document.getElementById('status').innerHTML = `Current flag: ${flag || 'not set'}`;
+        }
+        
+        function openApp() {
+            window.open('http://localhost:5174/', '_blank');
+        }
+    </script>
+</body>
+</html>

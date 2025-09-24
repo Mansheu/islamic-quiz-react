@@ -17,6 +17,7 @@ import ThemeToggle from './components/ThemeToggle';
 import { AuthModal } from './components/AuthModal';
 import { UserProfile } from './components/UserProfile';
 import { AuthPrompt } from './components/AuthPrompt';
+import IntroOverlay from './components/IntroOverlay';
 import './App.css';
 
 type AppView = 'quiz' | 'timed-challenge' | 'leaderboard' | 'admin';
@@ -32,6 +33,9 @@ function App() {
   const [authPromptType, setAuthPromptType] = useState<'regular' | 'timed'>('regular');
   const [isGuestMode, setIsGuestMode] = useState(false);
   const navigationRef = useRef<HTMLDivElement>(null);
+  // Always show intro on page load/reload
+  const [showIntro, setShowIntro] = useState<boolean>(true);
+  // No localStorage check needed - intro shows every time
 
   // Handle horizontal scroll for navigation tabs
   const scrollNavigation = (direction: 'left' | 'right') => {
@@ -128,25 +132,27 @@ function App() {
     <div className="App">
       <div className="container">
         <header>
-          <div className="app-title">
-            <h1>Dawah Quiz Hub</h1>
-            <p className="community-subtitle">by Mansheu Dawah</p>
-          </div>
-          <div className="header-controls">
+          <div className="header-left">
             <ThemeToggle />
+          </div>
+          <div className="header-center">
+            <div className="app-title">
+              <h1>Dawah Quiz Hub</h1>
+              <p className="community-subtitle">by Mansheu Dawah</p>
+            </div>
+          </div>
+          <div className="header-right">
             {user ? (
               <div className="user-menu">
                 <button 
-                  className="user-btn"
+                  className="user-profile-btn"
                   onClick={() => setShowProfile(true)}
+                  title={user.displayName || user.email?.split('@')[0] || 'User'}
                 >
-                  <span className="user-name">
-                    {user.displayName || user.email?.split('@')[0] || 'User'}
-                  </span>
                   {user.photoURL ? (
-                    <img src={user.photoURL} alt="Profile" className="user-avatar-small" />
+                    <img src={user.photoURL} alt="Profile" className="user-avatar" />
                   ) : (
-                    <div className="user-avatar-small">
+                    <div className="user-avatar">
                       {(user.displayName || user.email || 'U').charAt(0).toUpperCase()}
                     </div>
                   )}
@@ -179,7 +185,7 @@ function App() {
                 className={`nav-tab ${currentView === 'quiz' ? 'active' : ''}`}
                 onClick={() => handleViewChange('quiz')}
               >
-                🎯 Regular Quiz
+                🎯 Quiz
               </button>
               {/* Only show timed challenge if user is signed in */}
               {user && (
@@ -187,7 +193,7 @@ function App() {
                   className={`nav-tab ${currentView === 'timed-challenge' ? 'active' : ''}`}
                   onClick={() => handleViewChange('timed-challenge')}
                 >
-                  ⚡ Timed Challenge
+                  ⚡ Challenge
                 </button>
               )}
               <button 
@@ -292,6 +298,18 @@ function App() {
           onClose={() => setShowProfile(false)} 
         />
 
+        <div className="sticky-badge">
+          🤍ྀི Made by <strong>
+            <a 
+              href="https://github.com/Mansheu" 
+              target="_blank" 
+              rel="noopener noreferrer"
+            >
+              Mansheu
+            </a>
+          </strong>
+        </div>
+
         <footer className="footer">
           Made with <span className="heart">💗</span> by <strong>
             <a 
@@ -304,6 +322,14 @@ function App() {
           </strong>
         </footer>
       </div>
+      {showIntro && (
+        <IntroOverlay
+          onStart={() => {
+            // Simply hide the intro when Go button is clicked
+            setShowIntro(false);
+          }}
+        />
+      )}
     </div>
   );
 }

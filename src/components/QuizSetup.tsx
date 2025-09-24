@@ -59,13 +59,13 @@ const QuizSetup: React.FC<QuizSetupProps> = ({ isGuestMode = false }) => {
 
         <div className="quiz-info">
           <h3>Quiz Features:</h3>
-          <ul>
-            <li>✅ Multiple categories covering various Islamic topics</li>
-            <li>✅ Detailed explanations for each answer</li>
-            <li>✅ Progress tracking</li>
-            <li>✅ Score calculation</li>
-            <li>✅ 10 randomized questions per quiz</li>
-          </ul>
+          <div className="feature-badges">
+            <span className="feature-badge">Multiple categories covering various Islamic topics</span>
+            <span className="feature-badge">Detailed explanations for each answer</span>
+            <span className="feature-badge">Progress tracking</span>
+            <span className="feature-badge">Score calculation</span>
+            <span className="feature-badge">10 randomized questions per quiz</span>
+          </div>
         </div>
       </div>
     </div>

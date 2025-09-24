@@ -227,7 +227,7 @@
 .forgot-password-btn {
   background: none;
   border: none;
-  color: #667eea;
+  color: var(--primary-color);
   cursor: pointer;
   font-size: 14px;
   text-decoration: underline;
@@ -235,5 +235,5 @@
 }
 
 .forgot-password-btn:hover {
-  color: #5a6fd8;
+  color: var(--primary-hover);
 }
