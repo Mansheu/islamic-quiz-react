@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useTimedChallengeStore, getGradeColor } from '../store/timedChallenge';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth } from '../firebase/config';
+import { updateUserTimedChallengeResults } from '../firebase/auth';
 import { GuestScoreNotification } from './GuestScoreNotification';
 import './ChallengeResults.css';
 
@@ -15,6 +16,32 @@ export const ChallengeResults: React.FC = () => {
     if (results && !user) {
       setShowGuestNotification(true);
     }
+  }, [results, user]);
+
+  // Save timed challenge results to Firebase for authenticated users
+  useEffect(() => {
+    const saveResults = async () => {
+      if (results && user) {
+        try {
+          console.log('🔄 Saving timed challenge results to database...');
+          await updateUserTimedChallengeResults(user.uid, {
+            challengeId: results.challengeId,
+            score: results.score,
+            grade: results.grade,
+            correctAnswers: results.correctAnswers,
+            totalQuestions: results.totalQuestions,
+            timeSpent: results.timeSpent,
+            accuracy: results.accuracy,
+            completedAt: results.completedAt
+          });
+          console.log('✅ Timed challenge results saved to database');
+        } catch (error) {
+          console.error('❌ Error saving timed challenge results:', error);
+        }
+      }
+    };
+
+    saveResults();
   }, [results, user]);
 
   if (!results) {

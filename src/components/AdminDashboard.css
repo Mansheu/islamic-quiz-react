@@ -11,7 +11,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 25px;
+  margin-bottom: 15px;
   padding-bottom: 15px;
   border-bottom: 2px solid var(--card-border);
 }
@@ -22,10 +22,19 @@
   font-size: 28px;
 }
 
-.admin-header p {
-  margin: 5px 0 0 0;
+.welcome-message {
+  margin-bottom: 25px;
+  padding: 15px;
+  background: rgba(var(--primary-color-rgb), 0.05);
+  border-radius: 8px;
+  border-left: 4px solid var(--primary-color);
+}
+
+.welcome-message p {
+  margin: 0;
   color: var(--text-color);
-  opacity: 0.8;
+  font-size: 16px;
+  font-weight: 500;
 }
 
 .refresh-btn {
@@ -164,28 +173,37 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 8px 0;
+  padding: 12px;
   border-bottom: 1px solid rgba(var(--accent-color-rgb), 0.1);
+  background: rgba(var(--primary-color-rgb), 0.02);
+  border-radius: 6px;
+  margin-bottom: 4px;
 }
 
 .topic-item:last-child {
   border-bottom: none;
+  margin-bottom: 0;
 }
 
 .topic-rank {
   font-weight: bold;
   color: var(--primary-color);
   min-width: 30px;
+  font-size: 14px;
 }
 
 .topic-name {
   flex: 1;
-  font-weight: 500;
+  font-weight: 600;
+  color: var(--text-color);
+  font-size: 14px;
 }
 
 .topic-count {
   font-size: 12px;
   opacity: 0.8;
+  color: var(--text-color);
+  font-weight: 500;
 }
 
 /* Activity List */
@@ -200,30 +218,41 @@
 .activity-item {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 8px 0;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 12px;
   border-bottom: 1px solid rgba(var(--accent-color-rgb), 0.1);
   font-size: 13px;
+  background: rgba(var(--primary-color-rgb), 0.02);
+  border-radius: 6px;
+  margin-bottom: 4px;
 }
 
 .activity-item:last-child {
   border-bottom: none;
+  margin-bottom: 0;
 }
 
 .activity-user {
   font-weight: bold;
   color: var(--primary-color);
-  min-width: 100px;
+  min-width: 120px;
+  flex-shrink: 0;
 }
 
 .activity-action {
   flex: 1;
-  opacity: 0.8;
+  color: var(--text-color);
+  font-weight: 500;
 }
 
 .activity-time {
   font-size: 11px;
-  opacity: 0.6;
+  opacity: 0.7;
+  color: var(--text-color);
+  min-width: 80px;
+  text-align: right;
+  flex-shrink: 0;
 }
 
 /* Users Table */
@@ -468,6 +497,29 @@
   flex-wrap: wrap;
 }
 
+.action-buttons .btn {
+  background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(var(--primary-color-rgb), 0.3);
+  font-family: "DM Sans", sans-serif;
+}
+
+.action-buttons .btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(var(--primary-color-rgb), 0.4);
+}
+
+.action-buttons .btn:active {
+  transform: translateY(0);
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
   .admin-header {
@@ -544,4 +596,36 @@
   .admin-table td {
     padding: 6px 4px;
   }
+}
+
+/* Dark Mode */
+body.dark .welcome-message {
+  background: rgba(var(--primary-color-rgb), 0.1);
+  color: var(--text-color);
+}
+
+body.dark .topic-item {
+  background: rgba(var(--primary-color-rgb), 0.05);
+  color: var(--text-color);
+}
+
+body.dark .topic-name {
+  color: var(--text-strong);
+}
+
+body.dark .topic-count {
+  color: var(--text-color);
+}
+
+body.dark .activity-item {
+  background: rgba(var(--primary-color-rgb), 0.05);
+  color: var(--text-color);
+}
+
+body.dark .activity-action {
+  color: var(--text-color);
+}
+
+body.dark .activity-time {
+  color: var(--text-color);
 }

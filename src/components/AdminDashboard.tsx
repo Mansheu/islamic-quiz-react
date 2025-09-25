@@ -144,10 +144,9 @@ const AdminDashboard: React.FC = () => {
       <div className="card">
         <div className="admin-header">
           <h2>🛠️ Admin Dashboard</h2>
+        </div>
+        <div className="welcome-message">
           <p>Welcome, Administrator {user.displayName || user.email}</p>
-          <button onClick={loadAdminData} className="btn btn-secondary refresh-btn">
-            🔄 Refresh Data
-          </button>
         </div>
 
         {error && (

@@ -831,6 +831,19 @@ body.dark .high-scores-section h4 {
   color: var(--text-strong);
 }
 
+body.dark .high-scores-section .score-item {
+  background: var(--option-bg);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+body.dark .high-scores-section .topic-name {
+  color: var(--text-color) !important;
+}
+
+body.dark .high-scores-section .score-value {
+  color: var(--accent-color) !important;
+}
+
 body.dark .achievements-section {
   background: var(--option-bg);
 }

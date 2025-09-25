@@ -35,6 +35,16 @@ interface UserProfile {
   location?: string; // Added location field
   totalScore: number;
   highScores: Record<string, number>;
+  timedChallengeResults?: Record<string, {
+    challengeId: string;
+    score: number;
+    grade: string;
+    correctAnswers: number;
+    totalQuestions: number;
+    timeSpent: number;
+    accuracy: number;
+    completedAt: Date;
+  }>;
   joinedAt: Date;
   lastPlayed: Date;
 }
@@ -188,6 +198,83 @@ export const updateUserQuizResults = async (
     }
   } catch (error) {
     handleFirebaseError(error, 'Updating user quiz results');
+  }
+};
+
+// Update user timed challenge results
+export const updateUserTimedChallengeResults = async (
+  userId: string,
+  challengeResult: {
+    challengeId: string;
+    score: number;
+    grade: string;
+    correctAnswers: number;
+    totalQuestions: number;
+    timeSpent: number;
+    accuracy: number;
+    completedAt: string;
+  }
+): Promise<void> => {
+  try {
+    console.log('🔄 Updating timed challenge results for user:', userId);
+    const userDocRef = doc(firestore, 'users', userId);
+    const userDoc = await getDoc(userDocRef);
+    
+    if (userDoc.exists()) {
+      const userData = userDoc.data() as UserProfile;
+      
+      // Initialize timedChallengeResults if it doesn't exist
+      const timedChallengeResults = userData.timedChallengeResults || {};
+      
+      // Store the challenge result
+      timedChallengeResults[challengeResult.challengeId] = {
+        ...challengeResult,
+        completedAt: new Date(challengeResult.completedAt)
+      };
+      
+      // Update total score (add timed challenge score to regular score)
+      const updatedData = {
+        ...userData,
+        totalScore: (userData.totalScore || 0) + challengeResult.score,
+        timedChallengeResults,
+        lastPlayed: new Date()
+      };
+      
+      console.log('💾 Updating user document with timed challenge result:', {
+        userId,
+        challengeId: challengeResult.challengeId,
+        score: challengeResult.score,
+        grade: challengeResult.grade,
+        newTotalScore: updatedData.totalScore
+      });
+      
+      await setDoc(userDocRef, updatedData);
+      console.log('✅ Timed challenge results updated successfully!');
+    } else {
+      console.log('❌ User document does not exist for timed challenge. Creating it first...');
+      
+      // If user document doesn't exist, create a basic one and then update
+      const basicProfile: UserProfile = {
+        uid: userId,
+        email: '',
+        displayName: 'Anonymous',
+        totalScore: challengeResult.score,
+        highScores: {},
+        timedChallengeResults: {
+          [challengeResult.challengeId]: {
+            ...challengeResult,
+            completedAt: new Date(challengeResult.completedAt)
+          }
+        },
+        joinedAt: new Date(),
+        lastPlayed: new Date()
+      };
+      
+      await setDoc(userDocRef, basicProfile);
+      console.log('✅ Created user profile and saved timed challenge results!');
+    }
+  } catch (error) {
+    handleFirebaseError(error, 'Updating user timed challenge results');
   }
 };
 

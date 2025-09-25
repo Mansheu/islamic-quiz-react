@@ -27,7 +27,7 @@ export const TimedChallengeSelector: React.FC<TimedChallengeSelectorProps> = ({ 
   return (
     <div className="timed-challenge-selector">
       <div className="selector-header">
-        <h1>⚡ Timed Challenges</h1>
+        <h1>⏱️ Timed Challenges</h1>
         <p className="selector-subtitle">
           Test your knowledge under pressure! Complete challenges quickly for bonus points.
         </p>

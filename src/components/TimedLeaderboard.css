@@ -23,6 +23,7 @@
   font-size: 1.8rem;
   font-weight: 800;
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  color: #FFFEF7; /* Milk white color */
 }
 
 .leaderboard-subtitle {

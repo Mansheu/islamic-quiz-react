@@ -248,7 +248,7 @@ header h1 {
 
 .navigation-tabs {
   display: flex;
-  gap: 5px;
+  gap: 8px;
   background: rgba(var(--accent-color-rgb), 0.1);
   padding: 8px;
   border-radius: 12px;
@@ -258,7 +258,7 @@ header h1 {
   scrollbar-width: none; /* Firefox */
   -ms-overflow-style: none; /* IE/Edge */
   flex: 1;
-  justify-content: center; /* center nav tabs */
+  justify-content: space-between; /* evenly distribute tabs */
 }
 
 .navigation-tabs::-webkit-scrollbar {
@@ -293,8 +293,9 @@ header h1 {
 }
 
 .nav-tab {
-  flex-shrink: 0; /* Prevent tabs from shrinking */
-  min-width: 140px; /* Ensure minimum width for readability */
+  flex: 1; /* Equal distribution */
+  min-width: 120px; /* Reduced minimum width */
+  max-width: 160px; /* Add maximum width for consistency */
   padding: 15px 20px;
   background: transparent;
   border: none;
@@ -306,6 +307,7 @@ header h1 {
   color: var(--text-color);
   font-family: "DM Sans", sans-serif;
   white-space: nowrap; /* Prevent text wrapping */
+  text-align: center; /* Center text within each tab */
 }
 
 .nav-tab:hover {
@@ -408,8 +410,15 @@ select:focus {
 }
 
 .btn-secondary {
-  background: linear-gradient(135deg, #6c757d, #5a6268);
+  background: rgba(var(--primary-color-rgb), 0.1);
+  color: var(--primary-color);
+  border: 2px solid var(--primary-color);
+}
+
+.btn-secondary:hover {
+  background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
   color: white;
+  border-color: transparent;
 }
 
 .btn-danger {
@@ -858,7 +867,7 @@ body.dark .explanation {
     overflow-x: visible; /* Change from auto to visible */
     width: 100%; /* Ensure full width */
     max-width: 100%; /* Prevent overflow */
-    justify-content: center; /* Center the tabs */
+    justify-content: space-between; /* Evenly distribute tabs */
     flex-wrap: nowrap; /* Keep tabs in one line */
     box-sizing: border-box;
   }
@@ -875,6 +884,10 @@ body.dark .explanation {
 
   .nav-tab:nth-child(3) {
     font-size: 12px; /* Slightly smaller for leaderboard tab on mobile */
+  }
+
+  .nav-tab:nth-child(4) {
+    font-size: 12px; /* Same smaller size for admin tab on mobile */
   }
 
   .question {
@@ -987,6 +1000,36 @@ body.dark {
   --bg-color: var(--secondary-color);
 }
 
+/* Dark mode select styling */
+body.dark select {
+  background: var(--secondary-color);
+  color: var(--text-color);
+  border-color: var(--accent-color);
+}
+
+body.dark select option {
+  background: var(--secondary-color);
+  color: var(--text-color);
+}
+
+/* Dark mode button styling */
+body.dark .btn-secondary {
+  background: rgba(var(--accent-color-rgb), 0.1);
+  color: var(--accent-color);
+  border-color: var(--accent-color);
+}
+
+body.dark .btn-secondary:hover {
+  background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+  color: white;
+  border-color: transparent;
+}
+
+/* Dark mode app title styling */
+body.dark .app-title h1 {
+  color: #cffcd8;
+}
+
 /* App Title and Community Branding */
 .app-title {
   text-align: center;
@@ -1046,6 +1089,10 @@ body.dark {
   .nav-tab:nth-child(3) {
     font-size: 10px;
   }
+  
+  .nav-tab:nth-child(4) {
+    font-size: 10px; /* Same extra small size for admin tab on smallest screens */
+  }
 }
 
 /* Feature Badges */
@@ -1091,6 +1138,7 @@ body.dark {
   z-index: 1000;
   transition: all 0.3s ease;
   font-family: "DM Sans", sans-serif;
+  border: 2px solid var(--accent-color);
 }
 
 .sticky-badge:hover {
