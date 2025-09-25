@@ -3,7 +3,11 @@ import { useQuizStore } from '../store';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth } from '../firebase/config';
 import { updateUserQuizResults, ensureUserProfile } from '../firebase/auth';
+import { updateUserProgress, updateDailyStreak } from '../firebase/achievements';
 import { GuestScoreNotification } from './GuestScoreNotification';
+import AchievementNotification from './AchievementNotification';
+import CustomLoader from './CustomLoader';
+import type { Achievement } from '../types/achievements';
 
 const QuizComponent: React.FC = () => {
   const {
@@ -26,6 +30,7 @@ const QuizComponent: React.FC = () => {
   const [showExplanation, setShowExplanation] = useState(false);
   const [isSavingScore, setIsSavingScore] = useState(false);
   const [showGuestNotification, setShowGuestNotification] = useState(false);
+  const [unlockedAchievements, setUnlockedAchievements] = useState<Achievement[]>([]);
 
   const question = getCurrentQuestion();
   const isAnswered = currentQuestion in answeredQuestions;
@@ -67,6 +72,26 @@ const QuizComponent: React.FC = () => {
           // Ensure user profile exists before saving results
           await ensureUserProfile(user);
           await updateUserQuizResults(user.uid, selectedTopic, score);
+          
+          // Update achievements and daily streak
+          const isPerfect = score === filteredQuestions.length;
+          const newAchievements = await updateUserProgress(user.uid, {
+            questionsAnswered: filteredQuestions.length,
+            correctAnswers: score,
+            isPerfectScore: isPerfect,
+            quizTopic: selectedTopic,
+            isTimedQuiz: false, // This could be enhanced to track timed quizzes
+            isTimedPerfect: false
+          });
+          
+          // Update daily streak
+          await updateDailyStreak(user.uid);
+          
+          // Show achievement notifications for new unlocks
+          if (newAchievements.length > 0) {
+            setUnlockedAchievements(newAchievements);
+          }
+          
           console.log('✅ Score saved successfully!');
         } catch (error) {
           console.error('❌ Error saving score:', error);
@@ -110,7 +135,10 @@ const QuizComponent: React.FC = () => {
           {user && (
             <div className="score-save-status">
               {isSavingScore ? (
-                <p>💾 Saving your score...</p>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <CustomLoader size="small" text="" />
+                  <span>💾 Saving your score...</span>
+                </div>
               ) : (
                 <p>✅ Score saved to your profile!</p>
               )}
@@ -213,6 +241,19 @@ const QuizComponent: React.FC = () => {
           onClose={() => setShowGuestNotification(false)}
         />
       )}
+      
+      {/* Achievement Notifications */}
+      {unlockedAchievements.map((achievement, index) => (
+        <AchievementNotification
+          key={`${achievement.id}-${Date.now()}-${index}`}
+          achievement={achievement}
+          onClose={() => {
+            setUnlockedAchievements(prev => 
+              prev.filter((_, i) => i !== index)
+            );
+          }}
+        />
+      ))}
     </div>
   );
 };

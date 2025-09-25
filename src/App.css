@@ -36,10 +36,17 @@ html {
   --card-bg: linear-gradient(135deg, #ffffff, #F4FBF6);
   --card-border: #a8d5b9;
   --option-bg: #F4FBF6;
+  
+  /* Additional text and UI variables */
+  --text-primary: #253D2C;
+  --text-secondary: #5a7c68;
+  --input-bg: #ffffff;
+  --border-color: #a8d5b9;
+  --hover-bg: #F4FBF6;
 }
 
 /* Dark Theme Overrides */
-body.dark {
+[data-theme="dark"] {
   --secondary-color: #253D2C;
   --body-bg: linear-gradient(135deg, #253D2C 0%, #2E6F40 100%);
   --card-bg: linear-gradient(135deg, #2f4a3a, #253D2C);
@@ -48,6 +55,13 @@ body.dark {
   --text-on-primary: #ffffff;
   --option-bg: #304a3b;
   --card-border: #3b5b48;
+  
+  /* Dark mode text and UI overrides */
+  --text-primary: #E9F5EE;
+  --text-secondary: #a8d5b9;
+  --input-bg: #2f4a3a;
+  --border-color: #3b5b48;
+  --hover-bg: #304a3b;
 }
 
 /* Base Layout */
@@ -570,7 +584,7 @@ select:focus {
   animation: fadeIn 0.5s ease-in;
 }
 
-body.dark .explanation {
+[data-theme="dark"] .explanation {
   background-color: rgba(126, 109, 243, 0.2);
 }
 
@@ -962,17 +976,6 @@ body.dark .explanation {
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
-
-
-.loading-spinner {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 3rem;
-  font-size: 1.1rem;
-  color: var(--text-color);
-}
-
 .error-message {
   background: rgba(220, 53, 69, 0.1);
   border: 1px solid rgba(220, 53, 69, 0.3);
@@ -994,39 +997,39 @@ body.dark .explanation {
   --primary-hover: #265e35;
 }
 
-body.dark {
+[data-theme="dark"] {
   --text-muted: white;
   --hover-color: rgba(var(--primary-color-rgb), 0.2);
   --bg-color: var(--secondary-color);
 }
 
 /* Dark mode select styling */
-body.dark select {
+[data-theme="dark"] select {
   background: var(--secondary-color);
   color: var(--text-color);
   border-color: var(--accent-color);
 }
 
-body.dark select option {
+[data-theme="dark"] select option {
   background: var(--secondary-color);
   color: var(--text-color);
 }
 
 /* Dark mode button styling */
-body.dark .btn-secondary {
+[data-theme="dark"] .btn-secondary {
   background: rgba(var(--accent-color-rgb), 0.1);
   color: var(--accent-color);
   border-color: var(--accent-color);
 }
 
-body.dark .btn-secondary:hover {
+[data-theme="dark"] .btn-secondary:hover {
   background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
   color: white;
   border-color: transparent;
 }
 
 /* Dark mode app title styling */
-body.dark .app-title h1 {
+[data-theme="dark"] .app-title h1 {
   color: #cffcd8;
 }
 

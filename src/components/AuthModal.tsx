@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { signInWithEmail, signUpWithEmail, signInWithGoogle } from '../firebase/auth';
+import { getSuccessMessage } from '../utils/errorMessages';
 import './AuthModal.css';
 
 interface AuthModalProps {
@@ -11,42 +12,74 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [displayName, setDisplayName] = useState('');
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [notification, setNotification] = useState<{
+    message: string;
+    type: 'success' | 'error';
+  } | null>(null);
+
+  const showInlineNotification = (message: string, type: 'success' | 'error') => {
+    setNotification({ message, type });
+    // Auto-clear after 5 seconds
+    setTimeout(() => setNotification(null), 5000);
+  };
 
   if (!isOpen) return null;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
+    setNotification(null);
     setLoading(true);
 
     try {
       if (isLogin) {
         await signInWithEmail(email, password);
+        showInlineNotification(getSuccessMessage('sign-in'), 'success');
       } else {
+        // Validate passwords match for sign up
+        if (password !== confirmPassword) {
+          showInlineNotification('Passwords do not match', 'error');
+          setLoading(false);
+          return;
+        }
+        if (password.length < 6) {
+          showInlineNotification('Password must be at least 6 characters long', 'error');
+          setLoading(false);
+          return;
+        }
         await signUpWithEmail(email, password, displayName);
+        showInlineNotification(getSuccessMessage('sign-up'), 'success');
       }
-      onClose();
-      resetForm();
+      // Close modal after 1.5 seconds to show success message
+      setTimeout(() => {
+        onClose();
+        resetForm();
+      }, 1500);
     } catch (error) {
-      setError(error instanceof Error ? error.message : 'An error occurred');
+      showInlineNotification(error instanceof Error ? error.message : 'An unexpected error occurred', 'error');
     } finally {
       setLoading(false);
     }
   };
 
   const handleGoogleSignIn = async () => {
-    setError('');
+    setNotification(null);
     setLoading(true);
 
     try {
       await signInWithGoogle();
-      onClose();
-      resetForm();
+      showInlineNotification(getSuccessMessage('sign-in'), 'success');
+      // Close modal after 1.5 seconds to show success message
+      setTimeout(() => {
+        onClose();
+        resetForm();
+      }, 1500);
     } catch (error) {
-      setError(error instanceof Error ? error.message : 'An error occurred');
+      showInlineNotification(error instanceof Error ? error.message : 'Google sign-in failed', 'error');
     } finally {
       setLoading(false);
     }
@@ -56,12 +89,15 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
     setEmail('');
     setPassword('');
     setDisplayName('');
-    setError('');
+    setConfirmPassword('');
+    setShowPassword(false);
+    setShowConfirmPassword(false);
+    setNotification(null);
   };
 
   const toggleMode = () => {
     setIsLogin(!isLogin);
-    setError('');
+    setNotification(null);
   };
 
   return (
@@ -101,18 +137,127 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
 
           <div className="form-group">
             <label htmlFor="password">Password</label>
-            <input
-              type="password"
-              id="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              placeholder="Enter your password"
-              minLength={6}
-            />
+            <div className="password-input-container">
+              <input
+                type={showPassword ? 'text' : 'password'}
+                id="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                placeholder="Enter your password"
+                minLength={6}
+              />
+              <button
+                type="button"
+                className="password-toggle"
+                onClick={() => setShowPassword(!showPassword)}
+                disabled={loading}
+                aria-label={showPassword ? 'Hide password' : 'Show password'}
+              >
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  {showPassword ? (
+                    // Eye with slash (hide)
+                    <>
+                      <path d="m15 18-.722-3.25"/>
+                      <path d="M2 8a10.645 10.645 0 0 0 20 0"/>
+                      <path d="m20 15-1.726-2.05"/>
+                      <path d="m4 15 1.726-2.05"/>
+                      <path d="m9 18 .722-3.25"/>
+                      <circle cx="12" cy="13" r="3"/>
+                    </>
+                  ) : (
+                    // Regular eye (show)
+                    <>
+                      <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/>
+                      <circle cx="12" cy="12" r="3"/>
+                    </>
+                  )}
+                </svg>
+              </button>
+            </div>
           </div>
 
-          {error && <div className="error-message">{error}</div>}
+          {!isLogin && (
+            <div className="form-group">
+              <label htmlFor="confirmPassword">Confirm Password</label>
+              <div className="password-input-container">
+                <input
+                  type={showConfirmPassword ? 'text' : 'password'}
+                  id="confirmPassword"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  required
+                  placeholder="Confirm your password"
+                  minLength={6}
+                />
+                <button
+                  type="button"
+                  className="password-toggle"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  disabled={loading}
+                  aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
+                >
+                  <svg
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    {showConfirmPassword ? (
+                      // Eye with slash (hide)
+                      <>
+                        <path d="m15 18-.722-3.25"/>
+                        <path d="M2 8a10.645 10.645 0 0 0 20 0"/>
+                        <path d="m20 15-1.726-2.05"/>
+                        <path d="m4 15 1.726-2.05"/>
+                        <path d="m9 18 .722-3.25"/>
+                        <circle cx="12" cy="13" r="3"/>
+                      </>
+                    ) : (
+                      // Regular eye (show)
+                      <>
+                        <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/>
+                        <circle cx="12" cy="12" r="3"/>
+                      </>
+                    )}
+                  </svg>
+                </button>
+              </div>
+            </div>
+          )}
+
+          {notification && (
+            <div className={`inline-notification ${notification.type}`}>
+              <div className="notification-icon">
+                {notification.type === 'success' ? (
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                    <polyline points="22,4 12,14.01 9,11.01"/>
+                  </svg>
+                ) : (
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <circle cx="12" cy="12" r="10"/>
+                    <line x1="15" y1="9" x2="9" y2="15"/>
+                    <line x1="9" y1="9" x2="15" y2="15"/>
+                  </svg>
+                )}
+              </div>
+              <span className="notification-message">{notification.message}</span>
+            </div>
+          )}
 
           <button type="submit" className="auth-submit-btn" disabled={loading}>
             {loading ? 'Please wait...' : isLogin ? 'Sign In' : 'Sign Up'}

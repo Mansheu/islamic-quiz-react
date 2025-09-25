@@ -1,24 +1,29 @@
 import { create } from 'zustand';
 import { devtools, persist } from 'zustand/middleware';
 import type { Question, QuizState, User } from '../types';
-import { getQuestionsByTopic, getUniqueTopics } from '../data/questions';
+import { QuestionService } from '../services/questionService';
 
 interface QuizStore extends QuizState {
   // Guest mode flag
   isGuestMode: boolean;
   
+  // Loading states
+  isLoadingQuestions: boolean;
+  
   // Actions
-  startQuiz: (topic: string, isGuest?: boolean) => void;
+  startQuiz: (topic: string, isGuest?: boolean) => Promise<void>;
   selectAnswer: (questionIndex: number, selectedAnswer: string) => void;
   nextQuestion: () => void;
   previousQuestion: () => void;
   resetQuiz: () => void;
   completeQuiz: () => void;
+  initializeQuestions: () => Promise<void>;
+  refreshQuestions: () => Promise<void>;
   
   // Getters
   getCurrentQuestion: () => Question | null;
   getProgress: () => number;
-  getAvailableTopics: () => string[];
+  getAvailableTopics: () => Promise<string[]>;
 }
 
 const shuffleArray = <T>(array: T[]): T[] => {
@@ -43,22 +48,65 @@ export const useQuizStore = create<QuizStore>()(
         isQuizCompleted: false,
         selectedTopic: 'All Topics',
         isGuestMode: false,
+        isLoadingQuestions: false,
+
+        // Initialize question service
+        initializeQuestions: async () => {
+          set({ isLoadingQuestions: true });
+          try {
+            await QuestionService.initialize();
+          } catch (error) {
+            console.error('Error initializing questions:', error);
+          } finally {
+            set({ isLoadingQuestions: false });
+          }
+        },
+
+        // Refresh questions cache
+        refreshQuestions: async () => {
+          set({ isLoadingQuestions: true });
+          try {
+            await QuestionService.refresh();
+          } catch (error) {
+            console.error('Error refreshing questions:', error);
+          } finally {
+            set({ isLoadingQuestions: false });
+          }
+        },
 
         // Actions
-        startQuiz: (topic: string, isGuest = false) => {
-          const questions = getQuestionsByTopic(topic);
-          const shuffledQuestions = shuffleArray(questions).slice(0, 10); // Limit to 10 questions
-          
-          set({
-            filteredQuestions: shuffledQuestions,
-            selectedTopic: topic,
-            currentQuestion: 0,
-            answeredQuestions: {},
-            score: 0,
-            isQuizStarted: true,
-            isQuizCompleted: false,
-            isGuestMode: isGuest,
-          });
+        startQuiz: async (topic: string, isGuest = false) => {
+          set({ isLoadingQuestions: true });
+          try {
+            const questions = await QuestionService.getQuestionsByTopic(topic);
+            const shuffledQuestions = shuffleArray(questions).slice(0, 10); // Limit to 10 questions
+            
+            set({
+              filteredQuestions: shuffledQuestions,
+              selectedTopic: topic,
+              currentQuestion: 0,
+              answeredQuestions: {},
+              score: 0,
+              isQuizStarted: true,
+              isQuizCompleted: false,
+              isGuestMode: isGuest,
+            });
+          } catch (error) {
+            console.error('Error starting quiz:', error);
+            // Fallback to empty questions array
+            set({
+              filteredQuestions: [],
+              selectedTopic: topic,
+              currentQuestion: 0,
+              answeredQuestions: {},
+              score: 0,
+              isQuizStarted: false,
+              isQuizCompleted: false,
+              isGuestMode: isGuest,
+            });
+          } finally {
+            set({ isLoadingQuestions: false });
+          }
         },
 
         selectAnswer: (questionIndex: number, selectedAnswer: string) => {
@@ -127,8 +175,13 @@ export const useQuizStore = create<QuizStore>()(
           return ((state.currentQuestion + 1) / state.filteredQuestions.length) * 100;
         },
 
-        getAvailableTopics: () => {
-          return getUniqueTopics();
+        getAvailableTopics: async () => {
+          try {
+            return await QuestionService.getAvailableTopics();
+          } catch (error) {
+            console.error('Error getting available topics:', error);
+            return ['All Topics']; // Fallback
+          }
         },
       }),
       {

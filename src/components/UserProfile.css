@@ -594,15 +594,6 @@
   cursor: not-allowed;
 }
 
-.loading-spinner {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 40px;
-  font-size: 18px;
-  color: #666;
-}
-
 .error-message {
   color: #ff4757;
   text-align: center;

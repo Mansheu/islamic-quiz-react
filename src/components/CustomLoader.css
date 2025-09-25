@@ -1,0 +1,123 @@
+/* Custom Loader Styles */
+.custom-loader-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  min-height: 100px;
+}
+
+.custom-loader {
+  margin-top: 6px;
+}
+
+.custom-loader svg {
+  display: block;
+}
+
+.custom-loader svg polyline {
+  fill: none;
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.custom-loader svg polyline#back {
+  fill: none;
+  stroke: var(--accent-color);
+  stroke-opacity: 0.3;
+}
+
+.custom-loader svg polyline#front {
+  fill: none;
+  stroke: var(--primary-color);
+  stroke-dasharray: 48, 144;
+  stroke-dashoffset: 192;
+  animation: custom-loader-animation 1.4s linear infinite;
+}
+
+@keyframes custom-loader-animation {
+  72.5% {
+    opacity: 0;
+  }
+
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+.custom-loader-text {
+  font-size: 1rem;
+  color: var(--text-color);
+  font-weight: 500;
+  margin: 0;
+  text-align: center;
+}
+
+/* Size Variants */
+.custom-loader-small .custom-loader svg {
+  width: 32px;
+  height: 32px;
+}
+
+.custom-loader-small .custom-loader-text {
+  font-size: 0.875rem;
+}
+
+.custom-loader-small {
+  gap: 0.5rem;
+  min-height: 60px;
+}
+
+.custom-loader-medium .custom-loader svg {
+  width: 48px;
+  height: 48px;
+}
+
+.custom-loader-medium .custom-loader-text {
+  font-size: 1rem;
+}
+
+.custom-loader-large .custom-loader svg {
+  width: 64px;
+  height: 64px;
+}
+
+.custom-loader-large .custom-loader-text {
+  font-size: 1.125rem;
+}
+
+.custom-loader-large {
+  gap: 1.5rem;
+  min-height: 120px;
+}
+
+/* Theme Support */
+[data-theme="dark"] .custom-loader svg polyline#back {
+  stroke: var(--accent-color);
+  stroke-opacity: 0.4;
+}
+
+[data-theme="dark"] .custom-loader svg polyline#front {
+  stroke: var(--accent-color);
+}
+
+[data-theme="dark"] .custom-loader-text {
+  color: var(--text-color);
+}
+
+/* Center alignment for full-screen usage */
+.custom-loader-fullscreen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--bg-color);
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}

@@ -9,7 +9,9 @@ import {
   changeUserPassword
 } from '../firebase/auth';
 import { testStorageConnection, testImageUpload } from '../firebase/storage-test';
+import { getSuccessMessage } from '../utils/errorMessages';
 import PasswordInput from './PasswordInput';
+import CustomLoader from './CustomLoader';
 import './UserProfile.css';
 
 interface UserProfileData {
@@ -46,6 +48,12 @@ export const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose }) => 
   const [previewUrl, setPreviewUrl] = useState<string>('');
   const [message, setMessage] = useState('');
   const [messageType, setMessageType] = useState<'success' | 'error'>('success');
+  
+  const showMessage = (msg: string, type: 'success' | 'error') => {
+    setMessage(msg);
+    setMessageType(type);
+    setTimeout(() => setMessage(''), 5000);
+  };
 
   const fetchUserProfile = useCallback(async () => {
     if (!user) return;
@@ -72,18 +80,13 @@ export const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose }) => 
     }
   }, [user, isOpen, fetchUserProfile]);
 
-  const showMessage = (msg: string, type: 'success' | 'error') => {
-    setMessage(msg);
-    setMessageType(type);
-    setTimeout(() => setMessage(''), 5000);
-  };
-
   const handleSignOut = async () => {
     try {
       await logOut();
-      onClose();
+      showMessage(getSuccessMessage('sign-out'), 'success');
+      setTimeout(() => onClose(), 1000);
     } catch (error) {
-      console.error('Error signing out:', error);
+      showMessage(error instanceof Error ? error.message : 'Failed to sign out', 'error');
     }
   };
 
@@ -247,7 +250,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose }) => 
     return (
       <div className="profile-modal-overlay" onClick={onClose}>
         <div className="profile-modal" onClick={(e) => e.stopPropagation()}>
-          <div className="loading-spinner">Loading...</div>
+          <CustomLoader text="Loading profile..." />
         </div>
       </div>
     );

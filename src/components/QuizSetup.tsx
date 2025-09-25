@@ -1,18 +1,45 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useQuizStore } from '../store';
+import CustomLoader from './CustomLoader';
 
 interface QuizSetupProps {
   isGuestMode?: boolean;
 }
 
 const QuizSetup: React.FC<QuizSetupProps> = ({ isGuestMode = false }) => {
-  const { startQuiz, getAvailableTopics } = useQuizStore();
+  const { startQuiz, getAvailableTopics, initializeQuestions, isLoadingQuestions } = useQuizStore();
   const [selectedTopic, setSelectedTopic] = useState<string>('All Topics');
-  
-  const topics = getAvailableTopics();
+  const [topics, setTopics] = useState<string[]>(['All Topics']);
+  const [isLoadingTopics, setIsLoadingTopics] = useState(true);
 
-  const handleStartQuiz = () => {
-    startQuiz(selectedTopic, isGuestMode);
+  // Initialize questions and load topics
+  useEffect(() => {
+    const loadTopics = async () => {
+      setIsLoadingTopics(true);
+      try {
+        // Initialize questions service first
+        await initializeQuestions();
+        
+        // Then get available topics
+        const availableTopics = await getAvailableTopics();
+        setTopics(availableTopics);
+      } catch (error) {
+        console.error('Error loading topics:', error);
+        setTopics(['All Topics']); // Fallback
+      } finally {
+        setIsLoadingTopics(false);
+      }
+    };
+
+    loadTopics();
+  }, [initializeQuestions, getAvailableTopics]);
+
+  const handleStartQuiz = async () => {
+    try {
+      await startQuiz(selectedTopic, isGuestMode);
+    } catch (error) {
+      console.error('Error starting quiz:', error);
+    }
   };
 
   return (
@@ -41,19 +68,30 @@ const QuizSetup: React.FC<QuizSetupProps> = ({ isGuestMode = false }) => {
             id="category"
             value={selectedTopic}
             onChange={(e) => setSelectedTopic(e.target.value)}
+            disabled={isLoadingTopics || isLoadingQuestions}
           >
-            {topics.map((topic) => (
-              <option key={topic} value={topic}>
-                {topic}
-              </option>
-            ))}
+            {isLoadingTopics ? (
+              <option>Loading topics...</option>
+            ) : (
+              topics.map((topic) => (
+                <option key={topic} value={topic}>
+                  {topic}
+                </option>
+              ))
+            )}
           </select>
 
           <button 
             className="btn btn-primary"
             onClick={handleStartQuiz}
+            disabled={isLoadingTopics || isLoadingQuestions}
           >
-            Start Quiz
+            {isLoadingQuestions ? (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <CustomLoader size="small" text="" />
+                Loading Quiz...
+              </div>
+            ) : 'Start Quiz'}
           </button>
         </div>
 

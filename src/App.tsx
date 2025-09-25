@@ -13,14 +13,18 @@ import { ChallengeResults } from './components/ChallengeResults';
 import { TimedLeaderboard } from './components/TimedLeaderboard';
 import Leaderboard from './components/Leaderboard';
 import AdminDashboard from './components/AdminDashboard';
+import AchievementDashboard from './components/AchievementDashboard';
 import ThemeToggle from './components/ThemeToggle';
 import { AuthModal } from './components/AuthModal';
 import { UserProfile } from './components/UserProfile';
 import { AuthPrompt } from './components/AuthPrompt';
 import IntroOverlay from './components/IntroOverlay';
+import NotificationToast from './components/NotificationToast';
+import ScrollToTop from './components/ScrollToTop';
+import CustomLoader from './components/CustomLoader';
 import './App.css';
 
-type AppView = 'quiz' | 'timed-challenge' | 'leaderboard' | 'admin';
+type AppView = 'quiz' | 'timed-challenge' | 'leaderboard' | 'admin' | 'achievements';
 
 function App() {
   const { isQuizStarted, resetQuiz } = useQuizStore();
@@ -112,7 +116,7 @@ function App() {
     return (
       <div className="App">
         <div className="container">
-          <div className="loading-spinner">Loading...</div>
+          <CustomLoader text="Initializing app..." />
         </div>
       </div>
     );
@@ -202,6 +206,12 @@ function App() {
               >
                 🏆 Leaderboard
               </button>
+              <button 
+                className={`nav-tab ${currentView === 'achievements' ? 'active' : ''}`}
+                onClick={() => handleViewChange('achievements')}
+              >
+                🎖️ Achievements
+              </button>
               {user && isAdmin(user.email) && (
                 <button 
                   className={`nav-tab ${currentView === 'admin' ? 'active' : ''}`}
@@ -269,6 +279,8 @@ function App() {
               </div>
             )}
           </div>
+        ) : currentView === 'achievements' ? (
+          <AchievementDashboard />
         ) : (
           <AdminDashboard />
         )}
@@ -297,6 +309,9 @@ function App() {
           isOpen={showProfile} 
           onClose={() => setShowProfile(false)} 
         />
+
+        <NotificationToast />
+        <ScrollToTop />
 
         <div className="sticky-badge">
           🤍ྀི Made by <strong>

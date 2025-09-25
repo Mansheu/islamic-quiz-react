@@ -1,0 +1,499 @@
+/* Achievement Dashboard Styles */
+.achievement-dashboard {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+  color: var(--text-color);
+  background: transparent; /* Let it inherit from the body */
+}
+
+/* Header Section */
+.dashboard-header {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.dashboard-header h1 {
+  font-size: 2.5rem;
+  margin-bottom: 20px;
+  color: var(--text-color); /* Use theme text color instead of primary-color */
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.dashboard-header h1 .emoji {
+  /* keep native emoji colors; no gradient/clip applied */
+  -webkit-text-fill-color: initial;
+  background: none;
+  filter: none;
+}
+
+.dashboard-header h1 .title-text {
+  color: var(--text-color) !important; /* Force theme text color with higher specificity */
+}
+
+/* Dark mode: make heading text milk white while keeping emoji native */
+@media (prefers-color-scheme: dark) {
+  .dashboard-header h1 .title-text { color: #f5f5f5; }
+}
+body.dark .dashboard-header h1 .title-text { color: #f5f5f5; }
+
+.overall-progress {
+  background: var(--card-bg);
+  border-radius: 12px;
+  padding: 30px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border: 2px solid var(--card-border);
+  margin-bottom: 30px;
+  backdrop-filter: blur(10px);
+}
+
+.overall-progress h2 {
+  margin-bottom: 20px;
+  color: var(--text-color);
+}
+
+.progress-stats {
+  display: flex;
+  justify-content: center;
+  gap: 40px;
+  margin-bottom: 20px;
+}
+
+.stat-item {
+  text-align: center;
+}
+
+.stat-number {
+  display: block;
+  font-size: 3rem;
+  font-weight: bold;
+  background: linear-gradient(135deg, #4ade80, #22c55e);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin-bottom: 5px;
+}
+
+.stat-label {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.progress-bar-container {
+  margin-top: 20px;
+}
+
+.progress-bar {
+  background: var(--input-bg);
+  height: 12px;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #4ade80, #22c55e);
+  border-radius: 6px;
+  transition: width 0.8s ease-in-out;
+  position: relative;
+}
+
+.progress-fill::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+  animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+/* SVG Line Animation Loader (Style 1) */
+.loader-1 {
+  display: inline-block;
+}
+
+.loader-1 svg {
+  width: 64px;
+  height: 48px;
+}
+
+.loader-1 .back-line {
+  fill: none;
+  stroke: #68BA7F;
+  stroke-opacity: 0.3;
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.loader-1 .front-line {
+  fill: none;
+  stroke: var(--primary-color);
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 12, 36;
+  stroke-dashoffset: 48;
+  animation: loader-1-animation 2s linear infinite;
+}
+
+@keyframes loader-1-animation {
+  0% {
+    stroke-dashoffset: 48;
+    stroke: var(--primary-color);
+  }
+  50% {
+    stroke-dashoffset: 0;
+    stroke: var(--accent-color);
+  }
+  100% {
+    stroke-dashoffset: -48;
+    stroke: var(--primary-color);
+  }
+}
+
+/* Dark mode adjustments for loader */
+[data-theme="dark"] .loader-1 .back-line {
+  stroke: rgba(255, 255, 255, 0.2);
+}
+
+[data-theme="dark"] .loader-1 .front-line {
+  stroke: var(--accent-color);
+}
+
+.auth-required {
+  text-align: center;
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 60px 40px;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.auth-required h2 {
+  margin-bottom: 20px;
+  color: var(--text-color);
+}
+
+.auth-required p {
+  color: var(--text-secondary);
+  font-size: 1.1rem;
+}
+
+/* Streak Section */
+.streak-section {
+  margin-bottom: 40px;
+}
+
+.streak-section h2 {
+  margin-bottom: 20px;
+  font-size: 1.8rem;
+}
+
+/* Achievements Section */
+.achievements-section {
+  margin-bottom: 40px;
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 30px;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.section-header h2 {
+  font-size: 1.8rem;
+  margin: 0;
+}
+
+.category-filter {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.filter-btn {
+  padding: 8px 16px;
+  border: 2px solid var(--card-border);
+  background: transparent;
+  color: var(--text-secondary);
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 0.9rem;
+  text-transform: capitalize;
+}
+
+.filter-btn:hover {
+  border-color: var(--primary-color);
+  color: var(--text-color);
+  transform: translateY(-1px);
+}
+
+.filter-btn.active {
+  background: linear-gradient(135deg, #4ade80, #22c55e);
+  border-color: #4ade80;
+  color: white;
+  font-weight: 600;
+}
+
+.achievements-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 20px;
+}
+
+.achievement-item {
+  /* Card shell for each badge */
+  background: rgba(0, 0, 0, 0.03);
+  border: 2px solid var(--card-border);
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
+  transition: all 0.3s ease;
+}
+
+.achievement-item:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.18);
+}
+
+/* Detailed Stats Section */
+.detailed-stats {
+  margin-top: 40px;
+}
+
+.detailed-stats h2 {
+  margin-bottom: 30px;
+  font-size: 1.8rem;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 25px;
+}
+
+.stat-card {
+  /* Default transparent background that will be overridden by theme-specific styles */
+  background: transparent;
+  backdrop-filter: blur(10px);
+  border: 2px solid transparent;
+  border-radius: 12px;
+  padding: 25px;
+  box-shadow: none;
+  transition: all 0.3s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-2px);
+  /* Shadow and border will be set by theme-specific styles */
+}
+
+.stat-card h3 {
+  margin-bottom: 20px;
+  color: var(--text-color);
+  font-size: 1.3rem;
+  padding-bottom: 10px;
+  border-bottom: 2px solid var(--card-border);
+}
+
+.stat-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--card-border);
+}
+
+.stat-row:last-child {
+  border-bottom: none;
+}
+
+.stat-value {
+  font-weight: 600;
+  color: #4ade80;
+}
+
+.stat-value.mastered {
+  color: #22c55e;
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+  .achievement-dashboard {
+    padding: 15px;
+  }
+  
+  .dashboard-header h1 {
+    font-size: 2rem;
+  }
+  
+  .progress-stats {
+    gap: 20px;
+  }
+  
+  .stat-number {
+    font-size: 2.5rem;
+  }
+  
+  .section-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .achievements-grid {
+    grid-template-columns: 1fr;
+    gap: 15px;
+  }
+  
+  .stats-grid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  
+  .category-filter {
+    justify-content: center;
+    width: 100%;
+  }
+  
+  .filter-btn {
+    flex: 1;
+    min-width: 80px;
+    text-align: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .progress-stats {
+    flex-direction: column;
+    gap: 15px;
+  }
+  
+  .filter-btn {
+    padding: 6px 12px;
+    font-size: 0.8rem;
+  }
+}
+
+/* Light mode specific styling */
+:root {
+  --achievement-card-bg-light: rgba(255, 255, 255, 0.95);
+  --achievement-card-border-light: rgba(0, 0, 0, 0.1);
+  --achievement-card-shadow-light: 0 4px 20px rgba(0, 0, 0, 0.08), 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+/* Dark mode specific styling */
+@media (prefers-color-scheme: dark) {
+  .spinner {
+    border-color: rgba(255,255,255,0.1);
+    border-top-color: #4ade80;
+  }
+  
+  /* In dark mode, let the board use the page background */
+  .overall-progress,
+  .stat-card,
+  .auth-required {
+    background: transparent;
+    border: 2px solid var(--card-border);
+    box-shadow: none;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+  
+  /* Make individual badge cards stand out a bit */
+  .achievement-item {
+    background: rgba(255, 255, 255, 0.04);
+    border: 2px solid var(--card-border);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+  }
+
+  .achievement-item:hover,
+  .stat-card:hover {
+    background: rgba(255, 255, 255, 0.02);
+    box-shadow: none;
+  }
+}
+
+/* App-controlled dark theme (via body.dark) — ensure same look regardless of OS theme */
+body.dark .achievement-dashboard,
+body.dark .achievements-section,
+body.dark .achievements-grid {
+  background: transparent !important;
+}
+
+body.dark .overall-progress,
+body.dark .stat-card,
+body.dark .auth-required {
+  background: transparent !important;
+  border: 2px solid var(--card-border);
+  box-shadow: none;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
+/* Make individual badge cards pop in app dark theme */
+body.dark .achievement-item {
+  background: rgba(255, 255, 255, 0.04) !important;
+  border: 2px solid var(--card-border) !important;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35) !important;
+}
+
+body.dark .achievement-item:hover,
+body.dark .stat-card:hover {
+  background: rgba(255, 255, 255, 0.02) !important;
+  box-shadow: none;
+}
+
+/* Light mode specific overrides */
+@media (prefers-color-scheme: light) {
+  .achievement-item {
+    background: var(--achievement-card-bg-light);
+    border: 2px solid var(--achievement-card-border-light);
+    box-shadow: var(--achievement-card-shadow-light);
+  }
+  
+  .achievement-item:hover {
+    background: rgba(255, 255, 255, 1);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12), 0 4px 12px rgba(0, 0, 0, 0.06);
+    border-color: rgba(74, 222, 128, 0.4);
+  }
+  
+  .stat-card {
+    background: var(--achievement-card-bg-light);
+    border: 2px solid var(--achievement-card-border-light);
+    box-shadow: var(--achievement-card-shadow-light);
+  }
+  
+  .stat-card:hover {
+    background: rgba(255, 255, 255, 1);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12), 0 4px 12px rgba(0, 0, 0, 0.06);
+    border-color: rgba(74, 222, 128, 0.3);
+  }
+  
+  .auth-required {
+    background: rgba(255, 255, 255, 0.8);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+  }
+  
+  .spinner {
+    border-color: rgba(0, 0, 0, 0.1);
+    border-top-color: #4ade80;
+  }
+}

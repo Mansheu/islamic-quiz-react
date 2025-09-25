@@ -199,16 +199,6 @@
   font-weight: 900;
 }
 
-.loading-spinner {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 200px;
-  font-size: 1.2em;
-  color: #1a1a1a;
-  font-weight: 800;
-}
-
 /* Dark Theme Support */
 [data-theme="dark"] .timed-quiz {
   background: linear-gradient(135deg, #253D2C, #2E6F40);
@@ -260,10 +250,6 @@
 }
 
 [data-theme="dark"] .quiz-stats .stat-value {
-  color: white;
-}
-
-[data-theme="dark"] .loading-spinner {
   color: white;
 }
 

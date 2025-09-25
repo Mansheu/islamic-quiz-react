@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import { useTimedChallengeStore } from '../store/timedChallenge';
+import CustomLoader from './CustomLoader';
 import './TimedQuiz.css';
 
 export const TimedQuiz: React.FC = () => {
@@ -24,7 +25,7 @@ export const TimedQuiz: React.FC = () => {
   }, [updateTimer]);
 
   if (!currentChallenge || questions.length === 0) {
-    return <div className="loading-spinner">Loading challenge...</div>;
+    return <CustomLoader text="Loading challenge..." />;
   }
 
   // Check if quiz is completed

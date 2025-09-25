@@ -12,6 +12,7 @@ import {
 import { doc, setDoc, getDoc, updateDoc } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { auth, firestore, googleProvider, storage } from './config';
+import { getCustomErrorMessage } from '../utils/errorMessages';
 
 // Helper function to handle Firebase errors gracefully
 const handleFirebaseError = (error: unknown, context: string = 'Firebase operation'): never => {
@@ -21,9 +22,14 @@ const handleFirebaseError = (error: unknown, context: string = 'Firebase operati
     throw new Error('Operation cancelled'); // Still throw but with a cleaner message
   }
   
-  // Log other errors normally
-  console.error(`❌ ${context} error:`, error);
-  throw error;
+  // Log the original error for debugging (in development)
+  if (process.env.NODE_ENV === 'development') {
+    console.error(`❌ ${context} error:`, error);
+  }
+  
+  // Get user-friendly error message
+  const userFriendlyMessage = getCustomErrorMessage(error);
+  throw new Error(userFriendlyMessage);
 };
 
 // Interface for user profile data

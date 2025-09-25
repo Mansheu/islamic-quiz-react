@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth } from '../firebase/config';
 import { 
@@ -12,6 +12,20 @@ import {
   type AdminAnalytics,
   type AdminUser
 } from '../firebase/admin';
+import { 
+  getAllQuestionsForAdmin,
+  addQuestion,
+  updateQuestion,
+  deleteQuestion,
+  bulkImportQuestions 
+} from '../firebase/questions';
+import { Timestamp } from 'firebase/firestore';
+import { QuestionEditor } from './QuestionEditor';
+import { QuestionList } from './QuestionList';
+import { allQuestions } from '../data/questions';
+import type { Question } from '../types';
+import { useNotifications } from '../hooks/useNotifications';
+import CustomLoader from './CustomLoader';
 import './AdminDashboard.css';
 
 interface SystemHealth {
@@ -34,8 +48,21 @@ const AdminDashboard: React.FC = () => {
     completionRate: number;
   }>>([]);
   const [systemHealth, setSystemHealth] = useState<SystemHealth | null>(null);
-  const [activeTab, setActiveTab] = useState<'overview' | 'users' | 'quiz-stats' | 'system'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'users' | 'quiz-stats' | 'questions' | 'system'>('overview');
   const [error, setError] = useState<string | null>(null);
+  
+  // Questions management state
+  const { showNotification } = useNotifications();
+  const [questions, setQuestions] = useState<(Question & {
+    isActive?: boolean;
+    createdAt?: Timestamp;
+    updatedAt?: Timestamp;
+    createdBy?: string;
+  })[]>([]);
+  const [questionsLoading, setQuestionsLoading] = useState(false);
+  const [showQuestionEditor, setShowQuestionEditor] = useState(false);
+  const [editingQuestion, setEditingQuestion] = useState<Question | null>(null);
+  const [showMigrationPrompt, setShowMigrationPrompt] = useState(false);
 
   // Load admin data
   const loadAdminData = async () => {
@@ -66,6 +93,104 @@ const AdminDashboard: React.FC = () => {
   useEffect(() => {
     loadAdminData();
   }, []);
+
+  // Load questions from Firebase
+  const loadQuestions = useCallback(async () => {
+    setQuestionsLoading(true);
+    try {
+      const questionsData = await getAllQuestionsForAdmin();
+      setQuestions(questionsData);
+      
+      // Check if we should show migration prompt (no questions in Firebase but static questions exist)
+      if (questionsData.length === 0 && allQuestions.length > 0) {
+        setShowMigrationPrompt(true);
+      }
+    } catch (err) {
+      console.error('Error loading questions:', err);
+      showNotification({ message: 'Failed to load questions', type: 'error' });
+    } finally {
+      setQuestionsLoading(false);
+    }
+  }, [showNotification]);
+
+  // Load questions when questions tab is selected
+  useEffect(() => {
+    if (activeTab === 'questions') {
+      loadQuestions();
+    }
+  }, [activeTab, loadQuestions]);
+
+  // Handle saving question (create or update)
+  const handleSaveQuestion = async (questionData: Omit<Question, 'id'>) => {
+    if (!user) return;
+
+    try {
+      if (editingQuestion?.id) {
+        // Update existing question
+        await updateQuestion(editingQuestion.id, questionData);
+        showNotification({ message: 'Question updated successfully!', type: 'success' });
+      } else {
+        // Create new question
+        await addQuestion(questionData, user.uid);
+        showNotification({ message: 'Question created successfully!', type: 'success' });
+      }
+      
+      // Refresh questions list and close editor
+      await loadQuestions();
+      setShowQuestionEditor(false);
+      setEditingQuestion(null);
+    } catch (error) {
+      console.error('Error saving question:', error);
+      showNotification({ message: 'Failed to save question', type: 'error' });
+    }
+  };
+
+  // Handle editing a question
+  const handleEditQuestion = (question: Question) => {
+    setEditingQuestion(question);
+    setShowQuestionEditor(true);
+  };
+
+  // Handle deleting a question
+  const handleDeleteQuestion = async (questionId: string) => {
+    try {
+      await deleteQuestion(questionId);
+      showNotification({ message: 'Question deleted successfully', type: 'success' });
+      await loadQuestions();
+    } catch (error) {
+      console.error('Error deleting question:', error);
+      showNotification({ message: 'Failed to delete question', type: 'error' });
+    }
+  };
+
+  // Handle toggling question active status
+  const handleToggleQuestion = async (questionId: string, isActive: boolean) => {
+    try {
+      await updateQuestion(questionId, { isActive: isActive });
+      await loadQuestions();
+    } catch (error) {
+      console.error('Error toggling question:', error);
+      throw error; // Re-throw to be handled by QuestionList
+    }
+  };
+
+  // Handle migration from static data
+  const handleMigrateQuestions = async () => {
+    if (!user) return;
+    
+    try {
+      setQuestionsLoading(true);
+      await bulkImportQuestions(allQuestions, user.uid);
+      showNotification({ message: `Successfully imported ${allQuestions.length} questions!`, type: 'success' });
+      setShowMigrationPrompt(false);
+      await loadQuestions();
+    } catch (error) {
+      console.error('Error migrating questions:', error);
+      showNotification({ message: 'Failed to migrate questions', type: 'error' });
+    } finally {
+      setQuestionsLoading(false);
+    }
+  };
 
   // Handle user deletion
   const handleDeleteUser = async (userId: string, displayName: string) => {
@@ -130,10 +255,7 @@ const AdminDashboard: React.FC = () => {
     return (
       <div className="admin-dashboard">
         <div className="card">
-          <div className="loading-spinner">
-            <div className="spinner"></div>
-            <p>Loading admin dashboard...</p>
-          </div>
+          <CustomLoader text="Loading admin dashboard..." />
         </div>
       </div>
     );
@@ -174,6 +296,12 @@ const AdminDashboard: React.FC = () => {
             onClick={() => setActiveTab('quiz-stats')}
           >
             🎯 Quiz Stats
+          </button>
+          <button 
+            className={`admin-tab ${activeTab === 'questions' ? 'active' : ''}`}
+            onClick={() => setActiveTab('questions')}
+          >
+            ❓ Questions
           </button>
           <button 
             className={`admin-tab ${activeTab === 'system' ? 'active' : ''}`}
@@ -346,6 +474,95 @@ const AdminDashboard: React.FC = () => {
                   </div>
                 </div>
               ))}
+            </div>
+          </div>
+        )}
+
+        {/* Questions Tab */}
+        {activeTab === 'questions' && (
+          <div className="admin-content">
+            {/* Migration Prompt */}
+            {showMigrationPrompt && (
+              <div className="migration-prompt">
+                <h3>📦 Migrate Questions</h3>
+                <p>
+                  We found {allQuestions.length} questions in your static data file that haven't been migrated to Firebase yet. 
+                  Would you like to import them now?
+                </p>
+                <div className="migration-actions">
+                  <button 
+                    className="btn btn-primary" 
+                    onClick={handleMigrateQuestions}
+                    disabled={questionsLoading}
+                  >
+                    {questionsLoading ? (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <CustomLoader size="small" text="" />
+                        Importing...
+                      </div>
+                    ) : `Import ${allQuestions.length} Questions`}
+                  </button>
+                  <button 
+                    className="btn btn-secondary" 
+                    onClick={() => setShowMigrationPrompt(false)}
+                    disabled={questionsLoading}
+                  >
+                    Skip for Now
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Questions Management Header */}
+            <div className="questions-header">
+              <div className="questions-title">
+                <h3>❓ Questions Management</h3>
+                <span className="questions-count">
+                  {questions.length} question{questions.length !== 1 ? 's' : ''} total
+                </span>
+              </div>
+              <div className="questions-actions">
+                <button 
+                  className="btn btn-primary"
+                  onClick={() => setShowQuestionEditor(true)}
+                  disabled={showQuestionEditor}
+                >
+                  ➕ Add New Question
+                </button>
+                <button 
+                  className="btn btn-secondary"
+                  onClick={loadQuestions}
+                  disabled={questionsLoading}
+                >
+                  🔄 Refresh
+                </button>
+              </div>
+            </div>
+
+            {/* Question Editor */}
+            {showQuestionEditor && (
+              <div className="question-editor-container">
+                <QuestionEditor
+                  question={editingQuestion}
+                  onSave={handleSaveQuestion}
+                  onCancel={() => {
+                    setShowQuestionEditor(false);
+                    setEditingQuestion(null);
+                  }}
+                  isEditing={!!editingQuestion}
+                />
+              </div>
+            )}
+
+            {/* Questions List */}
+            <div className="questions-list-container">
+              <QuestionList
+                questions={questions}
+                onEditQuestion={handleEditQuestion}
+                onDeleteQuestion={handleDeleteQuestion}
+                onToggleQuestion={handleToggleQuestion}
+                isLoading={questionsLoading}
+              />
             </div>
           </div>
         )}

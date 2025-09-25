@@ -1,4 +1,5 @@
 export interface Question {
+  id?: string;
   question: string;
   options: string[];
   answer: string;
@@ -15,6 +16,7 @@ export interface QuizState {
   isQuizCompleted: boolean;
   selectedTopic: string;
   isGuestMode: boolean;
+  isLoadingQuestions?: boolean;
   timerInterval?: number;
 }
 

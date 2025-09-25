@@ -9,6 +9,7 @@ import {
   type LeaderboardEntry, 
   type LeaderboardFilters 
 } from '../firebase/leaderboard';
+import CustomLoader from './CustomLoader';
 import './Leaderboard.css';
 
 const Leaderboard: React.FC = () => {
@@ -144,10 +145,7 @@ const Leaderboard: React.FC = () => {
     return (
       <div className="leaderboard-container">
         <div className="card">
-          <div className="loading-spinner">
-            <div className="spinner"></div>
-            <p>Loading leaderboard...</p>
-          </div>
+          <CustomLoader text="Loading leaderboard..." />
         </div>
       </div>
     );

@@ -4,6 +4,7 @@ import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth } from '../firebase/config';
 import { updateUserTimedChallengeResults } from '../firebase/auth';
 import { GuestScoreNotification } from './GuestScoreNotification';
+import CustomLoader from './CustomLoader';
 import './ChallengeResults.css';
 
 export const ChallengeResults: React.FC = () => {
@@ -45,7 +46,7 @@ export const ChallengeResults: React.FC = () => {
   }, [results, user]);
 
   if (!results) {
-    return <div className="loading-spinner">Loading results...</div>;
+    return <CustomLoader text="Loading results..." />;
   }
 
   const formatTime = (seconds: number): string => {

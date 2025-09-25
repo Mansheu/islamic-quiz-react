@@ -1,0 +1,341 @@
+.achievement-badge {
+  position: relative;
+  border-radius: 16px;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  background: transparent; /* let the container card supply the background */
+  border: 2px solid transparent;
+}
+
+.achievement-badge.small {
+  padding: 0.75rem;
+}
+
+.achievement-badge.medium {
+  padding: 1rem;
+}
+
+.achievement-badge.large {
+  padding: 1.5rem;
+}
+
+.badge-inner {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.achievement-badge.small .badge-inner {
+  gap: 0.75rem;
+}
+
+.achievement-badge.large .badge-inner {
+  gap: 1.25rem;
+}
+
+/* Badge Icon */
+.badge-icon {
+  position: relative;
+  flex-shrink: 0;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, var(--rarity-color), color-mix(in srgb, var(--rarity-color) 80%, white));
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease;
+}
+
+.achievement-badge.small .badge-icon {
+  width: 45px;
+  height: 45px;
+}
+
+.achievement-badge.large .badge-icon {
+  width: 75px;
+  height: 75px;
+}
+
+.badge-icon .icon {
+  font-size: 2rem;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+}
+
+.achievement-badge.small .badge-icon .icon {
+  font-size: 1.5rem;
+}
+
+.achievement-badge.large .badge-icon .icon {
+  font-size: 2.5rem;
+}
+
+.unlock-indicator {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  width: 20px;
+  height: 20px;
+  background: var(--success-color);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  border: 2px solid var(--card-bg);
+}
+
+/* Badge Content */
+.badge-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.badge-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin: 0 0 0.25rem 0;
+  color: var(--text-primary);
+  line-height: 1.2;
+}
+
+.achievement-badge.small .badge-title {
+  font-size: 1rem;
+}
+
+.achievement-badge.large .badge-title {
+  font-size: 1.25rem;
+}
+
+.badge-description {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  margin: 0 0 0.75rem 0;
+  line-height: 1.4;
+}
+
+.achievement-badge.small .badge-description {
+  font-size: 0.8rem;
+  margin-bottom: 0.5rem;
+}
+
+.achievement-badge.large .badge-description {
+  font-size: 1rem;
+}
+
+/* Progress Bar */
+.progress-container {
+  margin: 0.5rem 0;
+}
+
+.progress-bar {
+  height: 6px;
+  background: rgba(var(--rarity-color-rgb, 104, 186, 127), 0.2);
+  border-radius: 3px;
+  overflow: hidden;
+  margin-bottom: 0.25rem;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--rarity-color), color-mix(in srgb, var(--rarity-color) 80%, white));
+  transition: width 0.6s ease-out;
+  border-radius: 3px;
+}
+
+.progress-text {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  font-weight: 600;
+}
+
+/* Unlock Date */
+.unlock-date {
+  font-size: 0.75rem;
+  color: var(--success-color);
+  font-weight: 600;
+  margin: 0.5rem 0;
+}
+
+/* Badge Rarity */
+.badge-rarity {
+  font-size: 0.7rem;
+  color: var(--rarity-color);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-top: 0.5rem;
+}
+
+/* Achievement States */
+.achievement-badge.locked {
+  opacity: 0.7;
+  border-color: var(--border-color);
+}
+
+.achievement-badge.locked .badge-icon {
+  background: linear-gradient(135deg, #888, #666);
+  filter: grayscale(1);
+}
+
+.achievement-badge.locked .badge-icon .icon {
+  filter: grayscale(1) opacity(0.6);
+}
+
+.achievement-badge.unlocked {
+  border-color: var(--rarity-color);
+  box-shadow: 0 4px 20px color-mix(in srgb, var(--rarity-color) 30%, transparent);
+}
+
+/* Unlock Glow Effect */
+.unlock-glow {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(circle at center, color-mix(in srgb, var(--rarity-color) 20%, transparent), transparent 70%);
+  opacity: 0;
+  animation: glowPulse 3s infinite;
+}
+
+@keyframes glowPulse {
+  0%, 100% { opacity: 0; }
+  50% { opacity: 0.3; }
+}
+
+/* Hover Effects */
+.achievement-badge:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.achievement-badge.unlocked:hover {
+  box-shadow: 0 8px 30px color-mix(in srgb, var(--rarity-color) 40%, transparent);
+}
+
+.achievement-badge:hover .badge-icon {
+  transform: scale(1.05);
+}
+
+/* Rarity Specific Styles */
+.achievement-badge.common {
+  --rarity-color-rgb: 104, 186, 127;
+}
+
+.achievement-badge.rare {
+  --rarity-color-rgb: 74, 144, 226;
+}
+
+.achievement-badge.epic {
+  --rarity-color-rgb: 155, 89, 182;
+}
+
+.achievement-badge.legendary {
+  --rarity-color-rgb: 243, 156, 18;
+}
+
+/* Dark Mode Adjustments */
+[data-theme="dark"] .achievement-badge {
+  background: transparent; /* use container background */
+  box-shadow: none;
+}
+
+[data-theme="dark"] .achievement-badge.locked {
+  opacity: 0.6;
+}
+
+[data-theme="dark"] .unlock-indicator {
+  border-color: var(--card-bg);
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+  .achievement-badge.medium {
+    padding: 0.75rem;
+  }
+  
+  .badge-inner {
+    gap: 0.75rem;
+  }
+  
+  .badge-icon {
+    width: 50px;
+    height: 50px;
+  }
+  
+  .badge-icon .icon {
+    font-size: 1.75rem;
+  }
+  
+  .badge-title {
+    font-size: 1rem;
+  }
+  
+  .badge-description {
+    font-size: 0.85rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .badge-inner {
+    flex-direction: column;
+    text-align: center;
+    gap: 0.5rem;
+  }
+  
+  .badge-icon {
+    width: 60px;
+    height: 60px;
+    margin: 0 auto;
+  }
+}
+
+/* Animation for newly unlocked badges */
+@keyframes badgeUnlock {
+  0% {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.achievement-badge.newly-unlocked {
+  animation: badgeUnlock 0.6s ease-out;
+}
+
+/* Theme-specific styling using data-theme attribute */
+/* Light mode - darker shadows and borders for better definition */
+.achievement-badge {
+  background: var(--card-bg);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border: 2px solid rgba(0, 0, 0, 0.15);
+}
+
+.achievement-badge:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  border-color: rgba(74, 222, 128, 0.6);
+}
+
+/* Dark mode - lighter shadows using #7DC291 and transparent background */
+[data-theme="dark"] .achievement-badge {
+  background: transparent !important;
+  box-shadow: 0 3px 12px rgba(125, 194, 145, 0.25); /* Light shadow using #7DC291 */
+  border: 2px solid rgba(255, 255, 255, 0.25);
+}
+
+[data-theme="dark"] .achievement-badge:hover {
+  background: rgba(255, 255, 255, 0.02) !important;
+  box-shadow: 0 6px 20px rgba(125, 194, 145, 0.35); /* Enhanced light shadow on hover */
+  border-color: rgba(125, 194, 145, 0.6); /* Use #7DC291 for border accent too */
+}

@@ -629,3 +629,223 @@ body.dark .activity-action {
 body.dark .activity-time {
   color: var(--text-color);
 }
+
+/* Questions Management Styles */
+.migration-prompt {
+  background: linear-gradient(135deg, rgba(255, 193, 7, 0.1), rgba(255, 193, 7, 0.05));
+  border: 2px solid var(--warning-color);
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.migration-prompt h3 {
+  color: var(--warning-color);
+  margin: 0 0 1rem 0;
+  font-size: 1.3rem;
+}
+
+.migration-prompt p {
+  color: var(--text-primary);
+  margin: 0 0 1.5rem 0;
+  line-height: 1.5;
+}
+
+.migration-actions {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.questions-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  padding: 1.5rem;
+  background: var(--card-bg);
+  border-radius: 12px;
+  border: 2px solid var(--border-color);
+}
+
+.questions-title {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.questions-title h3 {
+  margin: 0;
+  color: var(--text-primary);
+  font-size: 1.5rem;
+}
+
+.questions-count {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  font-style: italic;
+}
+
+.questions-actions {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.question-editor-container {
+  margin-bottom: 2rem;
+}
+
+.questions-list-container {
+  margin-top: 2rem;
+}
+
+/* Button Styles for Questions Management */
+.questions-actions .btn {
+  padding: 0.75rem 1.25rem;
+  font-weight: 600;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 140px;
+  justify-content: center;
+}
+
+.questions-actions .btn-primary {
+  background: var(--primary-color);
+  color: white;
+  border: none;
+}
+
+.questions-actions .btn-primary:hover:not(:disabled) {
+  background: var(--primary-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(103, 58, 183, 0.3);
+}
+
+.questions-actions .btn-secondary {
+  background: var(--card-bg);
+  color: var(--text-primary);
+  border: 2px solid var(--border-color);
+}
+
+.questions-actions .btn-secondary:hover:not(:disabled) {
+  border-color: var(--primary-color);
+  background: var(--hover-bg);
+}
+
+.questions-actions .btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.migration-actions .btn {
+  padding: 0.75rem 1.5rem;
+  font-weight: 600;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+/* Dark mode adjustments for questions */
+[data-theme="dark"] .migration-prompt {
+  background: linear-gradient(135deg, rgba(255, 193, 7, 0.15), rgba(255, 193, 7, 0.08));
+  border-color: #b8860b;
+}
+
+[data-theme="dark"] .migration-prompt h3 {
+  color: #ffc107;
+}
+
+[data-theme="dark"] .migration-prompt p {
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] .questions-header {
+  background: var(--card-bg);
+  border-color: var(--border-color);
+}
+
+[data-theme="dark"] .questions-title h3 {
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] .questions-count {
+  color: var(--text-secondary);
+}
+
+[data-theme="dark"] .questions-actions .btn-primary {
+  background: var(--primary-color);
+  color: white;
+  border: none;
+}
+
+[data-theme="dark"] .questions-actions .btn-secondary {
+  background: var(--card-bg);
+  color: var(--text-primary);
+  border-color: var(--border-color);
+}
+
+[data-theme="dark"] .questions-actions .btn-secondary:hover:not(:disabled) {
+  background: var(--hover-bg);
+  border-color: var(--primary-color);
+}
+
+/* Additional dark mode fixes for better readability */
+[data-theme="dark"] .admin-dashboard {
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] .admin-header h2 {
+  color: var(--primary-color);
+}
+
+[data-theme="dark"] .welcome-message p {
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] .error-message p {
+  color: var(--danger-color);
+}
+
+[data-theme="dark"] .admin-tab {
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] .admin-tab:hover {
+  background: rgba(var(--accent-color-rgb), 0.15);
+}
+
+[data-theme="dark"] .admin-tab.active {
+  background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+  color: white;
+}
+
+/* Responsive design for questions management */
+@media (max-width: 768px) {
+  .questions-header {
+    flex-direction: column;
+    gap: 1.5rem;
+    align-items: flex-start;
+  }
+  
+  .questions-actions {
+    width: 100%;
+    justify-content: stretch;
+  }
+  
+  .questions-actions .btn {
+    flex: 1;
+    min-width: unset;
+  }
+  
+  .migration-actions {
+    flex-direction: column;
+  }
+  
+  .migration-actions .btn {
+    width: 100%;
+  }
+}
