@@ -55,8 +55,18 @@ export const getUserAchievements = async (userId: string): Promise<UserAchieveme
     
     if (docSnap.exists()) {
       const data = docSnap.data();
+      
+      // Convert Firestore data to UserAchievements with proper date conversions
+      const achievements: Achievement[] = data.achievements.map((achievement: Achievement & { unlockedAt?: Timestamp | Date }) => ({
+        ...achievement,
+        unlockedAt: achievement.unlockedAt && typeof achievement.unlockedAt === 'object' && 'toDate' in achievement.unlockedAt
+          ? (achievement.unlockedAt as Timestamp).toDate() 
+          : achievement.unlockedAt as Date
+      }));
+      
       return {
         ...data,
+        achievements,
         updatedAt: data.updatedAt?.toDate() || new Date(),
         lastQuizDate: data.lastQuizDate?.toDate()
       } as UserAchievements;
@@ -323,17 +333,19 @@ export const updateDailyStreak = async (userId: string): Promise<DailyStreak> =>
         };
       });
 
-      // Update achievements in Firebase if new ones were unlocked
+      // Update achievements in Firebase if new ones were unlocked OR if streak data changed
       if (newlyUnlocked.length > 0) {
         userAchievements.totalUnlocked = userAchievements.achievements.filter(a => a.isUnlocked).length;
-        userAchievements.updatedAt = new Date();
-
-        const achievementsRef = doc(firestore, ACHIEVEMENTS_COLLECTION, userId);
-        await updateDoc(achievementsRef, {
-          ...userAchievements,
-          updatedAt: Timestamp.fromDate(userAchievements.updatedAt)
-        });
       }
+      
+      // Always update the streak values and updatedAt timestamp
+      userAchievements.updatedAt = new Date();
+
+      const achievementsRef = doc(firestore, ACHIEVEMENTS_COLLECTION, userId);
+      await updateDoc(achievementsRef, {
+        ...userAchievements,
+        updatedAt: Timestamp.fromDate(userAchievements.updatedAt)
+      });
     }
 
     return streak;
@@ -384,6 +396,28 @@ export const subscribeToUserAchievements = (
       callback(null);
     }
   });
+};
+
+// Get detailed daily streak data
+export const getUserDailyStreak = async (userId: string): Promise<DailyStreak | null> => {
+  try {
+    const docRef = doc(firestore, STREAKS_COLLECTION, userId);
+    const docSnap = await getDoc(docRef);
+    
+    if (docSnap.exists()) {
+      const data = docSnap.data();
+      return {
+        ...data,
+        lastActiveDate: data.lastActiveDate?.toDate() || new Date(),
+        streakHistory: data.streakHistory?.map((date: Timestamp) => date.toDate()) || []
+      } as DailyStreak;
+    }
+    
+    return null;
+  } catch (error) {
+    console.error('Error getting user daily streak:', error);
+    return null;
+  }
 };
 
 // Helper functions

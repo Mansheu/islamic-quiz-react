@@ -66,7 +66,10 @@ const AchievementBadge: React.FC<AchievementBadgeProps> = ({
           
           {achievement.isUnlocked && achievement.unlockedAt && (
             <div className="unlock-date">
-              Unlocked {new Date(achievement.unlockedAt).toLocaleDateString()}
+              Unlocked {achievement.unlockedAt instanceof Date && !isNaN(achievement.unlockedAt.getTime()) 
+                ? achievement.unlockedAt.toLocaleDateString()
+                : 'recently'
+              }
             </div>
           )}
           

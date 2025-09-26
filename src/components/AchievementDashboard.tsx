@@ -1,16 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth } from '../firebase/config';
-import { getUserAchievements, subscribeToUserAchievements } from '../firebase/achievements';
+import { getUserAchievements, subscribeToUserAchievements, getUserDailyStreak } from '../firebase/achievements';
 import AchievementBadge from './AchievementBadge';
 import StreakDisplay from './StreakDisplay';
 import { ACHIEVEMENT_DEFINITIONS } from '../types/achievements';
-import type { UserAchievements } from '../types/achievements';
+import type { UserAchievements, DailyStreak } from '../types/achievements';
 import './AchievementDashboard.css';
 
 const AchievementDashboard: React.FC = () => {
   const [user] = useAuthState(auth);
   const [userAchievements, setUserAchievements] = useState<UserAchievements | null>(null);
+  const [dailyStreak, setDailyStreak] = useState<DailyStreak | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [loading, setLoading] = useState(true);
 
@@ -23,8 +24,12 @@ const AchievementDashboard: React.FC = () => {
     const loadAchievements = async () => {
       try {
         setLoading(true);
-        const achievements = await getUserAchievements(user.uid);
+        const [achievements, streak] = await Promise.all([
+          getUserAchievements(user.uid),
+          getUserDailyStreak(user.uid)
+        ]);
         setUserAchievements(achievements);
+        setDailyStreak(streak);
       } catch (error) {
         console.error('Error loading achievements:', error);
       } finally {
@@ -127,12 +132,12 @@ const AchievementDashboard: React.FC = () => {
       <div className="streak-section">
         <h2>🔥 Daily Streak</h2>
         <StreakDisplay 
-          streak={{
+          streak={dailyStreak || {
             userId: user.uid,
             currentStreak: userAchievements?.currentStreak || 0,
             longestStreak: userAchievements?.longestStreak || 0,
             lastActiveDate: userAchievements?.lastQuizDate || new Date(),
-            streakHistory: [] // This would need to be populated from streak data
+            streakHistory: []
           }}
           size="large"
           showHistory={true}
