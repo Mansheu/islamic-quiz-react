@@ -272,7 +272,7 @@ header h1 {
   scrollbar-width: none; /* Firefox */
   -ms-overflow-style: none; /* IE/Edge */
   flex: 1;
-  justify-content: space-between; /* evenly distribute tabs */
+  justify-content: space-between; /* evenly distribute tabs (desktop) */
 }
 
 .navigation-tabs::-webkit-scrollbar {
@@ -338,6 +338,60 @@ header h1 {
 .nav-tab.active:hover {
   transform: translateY(-2px);
   opacity: 1;
+}
+
+/* Mobile-first improvements for nav layout */
+@media (max-width: 768px) {
+  .navigation-container {
+    margin-bottom: 14px;
+  }
+
+  /* Turn tabs into a compact grid on mobile for better organization */
+  .navigation-tabs {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+    overflow: visible;
+    white-space: normal; /* allow wrapping */
+    justify-content: initial; /* grid handles spacing */
+    padding: 8px 6px;
+  }
+
+  .nav-tab {
+    min-width: 0;
+    max-width: none;
+    padding: 10px 12px;
+    font-size: 14px;
+    background: var(--secondary-color);
+    border: 1px solid var(--card-border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    line-height: 1.1;
+  }
+
+  .nav-tab.active {
+    border-color: transparent;
+  }
+
+  /* Hide scroll buttons for grid layout */
+  .scroll-btn {
+    display: none;
+  }
+}
+
+/* Extra small screens: increase legibility and create two columns */
+@media (max-width: 420px) {
+  .navigation-tabs {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px;
+  }
+
+  .nav-tab {
+    font-size: 13px;
+    padding: 10px 10px;
+  }
 }
 
 /* Card Layout */
