@@ -420,6 +420,33 @@ export const getUserDailyStreak = async (userId: string): Promise<DailyStreak | 
   }
 };
 
+// Subscribe to daily streak updates
+export const subscribeToUserDailyStreak = (
+  userId: string, 
+  callback: (streak: DailyStreak | null) => void
+): (() => void) => {
+  const docRef = doc(firestore, STREAKS_COLLECTION, userId);
+  
+  const unsubscribe = onSnapshot(docRef, (docSnap) => {
+    if (docSnap.exists()) {
+      const data = docSnap.data();
+      const streak: DailyStreak = {
+        ...data,
+        lastActiveDate: data.lastActiveDate?.toDate() || new Date(),
+        streakHistory: data.streakHistory?.map((date: Timestamp) => date.toDate()) || []
+      } as DailyStreak;
+      callback(streak);
+    } else {
+      callback(null);
+    }
+  }, (error) => {
+    console.error('Error subscribing to daily streak:', error);
+    callback(null);
+  });
+  
+  return unsubscribe;
+};
+
 // Helper functions
 const isEarlyMorning = (): boolean => {
   const now = new Date();

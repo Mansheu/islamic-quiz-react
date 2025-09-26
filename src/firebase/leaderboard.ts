@@ -41,11 +41,17 @@ export const getTopPlayers = async (filters: LeaderboardFilters): Promise<Leader
     );
     
     const querySnapshot = await getDocs(leaderboardQuery);
+    console.log('🔍 [Firebase Debug] Raw query snapshot:', querySnapshot.size, 'documents');
     let players: LeaderboardEntry[] = [];
     
     const docs = querySnapshot.docs;
-    docs.forEach((doc) => {
+    console.log('🔍 [Firebase Debug] Processing', docs.length, 'documents');
+    
+    docs.forEach((doc, index) => {
       const userData = doc.data();
+      console.log(`🔍 [Firebase Debug] Document ${index + 1}:`, doc.id, userData);
+      console.log(`🔍 [Firebase Debug] Document ${index + 1} totalScore:`, userData.totalScore, typeof userData.totalScore);
+      console.log(`🔍 [Firebase Debug] Document ${index + 1} displayName:`, userData.displayName);
       const lastPlayed = userData.lastPlayed?.toDate() || new Date();
       
       // Apply time filtering in memory
@@ -66,14 +72,23 @@ export const getTopPlayers = async (filters: LeaderboardFilters): Promise<Leader
       }
       
       if (includePlayer && (userData.totalScore || 0) > 0) {
-        players.push({
-          uid: userData.uid,
+        const player = {
+          uid: userData.uid || doc.id,
           displayName: userData.displayName || 'Anonymous',
           photoURL: userData.photoURL,
           totalScore: userData.totalScore || 0,
           highScores: userData.highScores || {},
           lastPlayed: lastPlayed,
           rank: 0 // Will be set after filtering
+        };
+        console.log('🔍 [Firebase Debug] Adding player:', player);
+        players.push(player);
+      } else {
+        console.log('🔍 [Firebase Debug] Excluding player:', {
+          uid: userData.uid || doc.id,
+          includePlayer,
+          totalScore: userData.totalScore,
+          reason: !includePlayer ? 'time filter' : 'no score'
         });
       }
     });
@@ -85,6 +100,8 @@ export const getTopPlayers = async (filters: LeaderboardFilters): Promise<Leader
       player.rank = index + 1;
     });
     
+    console.log('🔍 [Firebase Debug] Final processed players:', players.length, 'players');
+    console.log('🔍 [Firebase Debug] Final player data:', players);
     console.log('✅ Leaderboard fetched successfully:', players.length, 'players');
     return players;
     

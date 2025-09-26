@@ -75,7 +75,12 @@ export class QuestionService {
         return allQuestions;
       }
     } catch (error) {
-      console.error('Error loading questions, falling back to static:', error);
+      // Check if it's a permissions error
+      if (error && typeof error === 'object' && 'code' in error && error.code === 'permission-denied') {
+        console.warn('📁 Firebase permissions denied, using static questions');
+      } else {
+        console.error('Error loading questions, falling back to static:', error);
+      }
       // Fallback to static questions if Firebase fails
       const { allQuestions } = await import('../data/questions');
       return allQuestions;

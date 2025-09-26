@@ -102,7 +102,7 @@ export const TimedQuiz: React.FC = () => {
           <h3 className="question-text">{currentQuestion.question}</h3>
           
           <div className="options-grid">
-            {currentQuestion.options.map((option, index) => (
+            {currentQuestion.options.map((option: string, index: number) => (
               <button
                 key={index}
                 className="option-btn"

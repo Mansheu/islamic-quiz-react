@@ -1,9 +1,35 @@
 import React from 'react';
 import { useTimedChallengeStore, timedChallenges, getGradeColor } from '../store/timedChallenge';
+import type { ChallengeResult } from '../types';
 import './TimedLeaderboard.css';
 
 export const TimedLeaderboard: React.FC = () => {
-  const { personalBests } = useTimedChallengeStore();
+  const { personalBests, refreshPersonalBests } = useTimedChallengeStore();
+  const hasRefreshed = React.useRef(false);
+
+  // Debug logging to help troubleshoot the grade issue
+  React.useEffect(() => {
+    console.log('📊 Personal Bests Data:', personalBests);
+    const allGrades = (Object.values(personalBests) as ChallengeResult[]).map(b => b.grade);
+    console.log('🎯 All Grades:', allGrades);
+    const gradeOrder = { 'S': 0, 'A': 1, 'B': 2, 'C': 3, 'D': 4 };
+    const bestGrade = allGrades.sort((a, b) => {
+      return (gradeOrder[a as keyof typeof gradeOrder] || 5) - (gradeOrder[b as keyof typeof gradeOrder] || 5);
+    })[0];
+    console.log('⭐ Calculated Best Grade:', bestGrade);
+    
+    // Remove the auto-refresh to prevent infinite loop
+    // refreshPersonalBests(); // This was causing infinite re-renders!
+  }, [personalBests]); // Remove refreshPersonalBests from dependencies
+
+  // Separate useEffect to refresh personal bests only on component mount
+  React.useEffect(() => {
+    if (!hasRefreshed.current) {
+      console.log('🔄 Refreshing personal bests on component mount (one time only)');
+      refreshPersonalBests();
+      hasRefreshed.current = true;
+    }
+  }, [refreshPersonalBests]); // Include dependency but use ref to prevent multiple calls
 
   const formatTime = (seconds: number): string => {
     const mins = Math.floor(seconds / 60);
@@ -32,7 +58,7 @@ export const TimedLeaderboard: React.FC = () => {
 
       <div className="records-grid">
         {timedChallenges.map((challenge) => {
-          const personalBest = personalBests[challenge.id];
+          const personalBest = personalBests[challenge.id] as ChallengeResult | undefined;
           
           return (
             <div key={challenge.id} className="record-card">
@@ -123,7 +149,7 @@ export const TimedLeaderboard: React.FC = () => {
               <div>
                 <span className="overall-label">Highest Score</span>
                 <span className="overall-value">
-                  {Math.max(...Object.values(personalBests).map(best => best.score))} pts
+                  {Math.max(...(Object.values(personalBests) as ChallengeResult[]).map(b => b.score))} pts
                 </span>
               </div>
             </div>
@@ -134,22 +160,24 @@ export const TimedLeaderboard: React.FC = () => {
                 <span 
                   className="overall-value"
                   style={{ 
-                    color: getGradeColor(
-                      Object.values(personalBests)
-                        .map(best => best.grade)
-                        .sort((a, b) => {
-                          const order = { 'S': 0, 'A': 1, 'B': 2, 'C': 3, 'D': 4 };
-                          return (order[a as keyof typeof order] || 5) - (order[b as keyof typeof order] || 5);
-                        })[0]
-                    )
+                    color: getGradeColor((() => {
+                      const allGrades = (Object.values(personalBests) as ChallengeResult[]).map(b => b.grade);
+                      const gradeOrder = { 'S': 0, 'A': 1, 'B': 2, 'C': 3, 'D': 4 };
+                      const bestGrade = allGrades.sort((a, b) => {
+                        return (gradeOrder[a as keyof typeof gradeOrder] || 5) - (gradeOrder[b as keyof typeof gradeOrder] || 5);
+                      })[0];
+                      return bestGrade;
+                    })())
                   }}
                 >
-                  {Object.values(personalBests)
-                    .map(best => best.grade)
-                    .sort((a, b) => {
-                      const order = { 'S': 0, 'A': 1, 'B': 2, 'C': 3, 'D': 4 };
-                      return (order[a as keyof typeof order] || 5) - (order[b as keyof typeof order] || 5);
-                    })[0]}
+                  {(() => {
+                    const allGrades = (Object.values(personalBests) as ChallengeResult[]).map(b => b.grade);
+                    const gradeOrder = { 'S': 0, 'A': 1, 'B': 2, 'C': 3, 'D': 4 };
+                    const bestGrade = allGrades.sort((a, b) => {
+                      return (gradeOrder[a as keyof typeof gradeOrder] || 5) - (gradeOrder[b as keyof typeof gradeOrder] || 5);
+                    })[0];
+                    return bestGrade;
+                  })()}
                 </span>
               </div>
             </div>
@@ -159,8 +187,8 @@ export const TimedLeaderboard: React.FC = () => {
                 <span className="overall-label">Average Accuracy</span>
                 <span className="overall-value">
                   {Math.round(
-                    Object.values(personalBests).reduce((sum, best) => sum + best.accuracy, 0) / 
-                    Object.values(personalBests).length
+                    (Object.values(personalBests) as ChallengeResult[]).reduce((sum, b) => sum + b.accuracy, 0) / 
+                    (Object.values(personalBests) as ChallengeResult[]).length
                   )}%
                 </span>
               </div>

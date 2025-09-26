@@ -99,4 +99,14 @@ export interface TimedChallengeState {
   endChallenge: () => void;
   resetChallenge: () => void;
   getPersonalBest: (challengeId: string) => ChallengeResult | null;
+  
+  // Debug and utility functions
+  debugPersonalBests: () => Record<string, ChallengeResult>;
+  refreshPersonalBests: () => Record<string, ChallengeResult>;
+  clearPersonalBests: () => void;
+  
+  // Firebase functions
+  loadPersonalBestsFromFirebase: () => Promise<void>;
+  migrateToFirebase: () => Promise<boolean>;
+  syncWithFirebase: () => Promise<void>;
 }

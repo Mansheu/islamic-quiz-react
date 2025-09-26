@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth } from '../firebase/config';
 import { 
@@ -26,11 +26,12 @@ const Leaderboard: React.FC = () => {
   const [leaderboardLimit] = useState(20);
 
   // Fetch leaderboard data
-  const fetchLeaderboard = async () => {
+  const fetchLeaderboard = useCallback(async () => {
     setLoading(true);
     setError(null);
     
     try {
+      console.log('🔍 [Leaderboard Debug] Starting fetch with:', { selectedTopic, selectedTimeframe, leaderboardLimit });
       let players: LeaderboardEntry[];
       
       if (selectedTopic === 'overall') {
@@ -38,11 +39,15 @@ const Leaderboard: React.FC = () => {
           timeframe: selectedTimeframe,
           limit: leaderboardLimit
         };
+        console.log('🔍 [Leaderboard Debug] Fetching top players with filters:', filters);
         players = await getTopPlayers(filters);
       } else {
+        console.log('🔍 [Leaderboard Debug] Fetching topic leaderboard for:', selectedTopic);
         players = await getTopicLeaderboard(selectedTopic, leaderboardLimit);
       }
       
+      console.log('🔍 [Leaderboard Debug] Fetched players:', players.length, 'players');
+      console.log('🔍 [Leaderboard Debug] Players data:', players);
       setLeaderboard(players);
       
       // Get user's rank if they're signed in
@@ -58,7 +63,7 @@ const Leaderboard: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [selectedTopic, selectedTimeframe, leaderboardLimit, user]);
 
   // Fetch played topics for filter dropdown
   const fetchPlayedTopics = async () => {
@@ -72,42 +77,9 @@ const Leaderboard: React.FC = () => {
 
   // Load data on component mount and when filters change
   useEffect(() => {
-    const loadLeaderboard = async () => {
-      setLoading(true);
-      setError(null);
-      
-      try {
-        let players: LeaderboardEntry[];
-        
-        if (selectedTopic === 'overall') {
-          const filters: LeaderboardFilters = {
-            timeframe: selectedTimeframe,
-            limit: leaderboardLimit
-          };
-          players = await getTopPlayers(filters);
-        } else {
-          players = await getTopicLeaderboard(selectedTopic, leaderboardLimit);
-        }
-        
-        setLeaderboard(players);
-        
-        // Get user's rank if they're signed in
-        if (user && selectedTopic === 'overall') {
-          const rank = await getUserRank(user.uid);
-          setUserRank(rank);
-        }
-        
-      } catch (err) {
-        console.error('Error fetching leaderboard:', err);
-        const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
-        setError(`Failed to load leaderboard: ${errorMessage}`);
-      } finally {
-        setLoading(false);
-      }
-    };
-    
-    loadLeaderboard();
-  }, [selectedTimeframe, selectedTopic, user, leaderboardLimit]);
+    console.log('🔍 [Leaderboard Debug] useEffect triggered, calling fetchLeaderboard');
+    fetchLeaderboard();
+  }, [fetchLeaderboard]);
 
   useEffect(() => {
     fetchPlayedTopics();

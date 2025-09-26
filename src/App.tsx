@@ -22,6 +22,7 @@ import IntroOverlay from './components/IntroOverlay';
 import NotificationToast from './components/NotificationToast';
 import ScrollToTop from './components/ScrollToTop';
 import CustomLoader from './components/CustomLoader';
+import AutoTimedChallengeSync from './components/AutoTimedChallengeSync';
 import './App.css';
 
 type AppView = 'quiz' | 'timed-challenge' | 'leaderboard' | 'admin' | 'achievements';
@@ -345,6 +346,9 @@ function App() {
           }}
         />
       )}
+      
+      {/* Automatic sync component - triggers when user signs in */}
+      <AutoTimedChallengeSync />
     </div>
   );
 }

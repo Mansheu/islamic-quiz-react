@@ -94,6 +94,15 @@ export const signInWithGoogle = async (): Promise<User> => {
     
     return user;
   } catch (error) {
+    // Special handling for popup-related errors
+    if (error && typeof error === 'object' && 'code' in error) {
+      if (error.code === 'auth/popup-blocked' || error.code === 'auth/popup-closed-by-user') {
+        throw new Error('Popup was blocked or closed. Please try again and allow popups for this site.');
+      }
+      if (error.code === 'auth/cancelled-popup-request') {
+        throw new Error('Another sign-in popup is already open. Please close it and try again.');
+      }
+    }
     return handleFirebaseError(error, 'Google sign in');
   }
 };

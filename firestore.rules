@@ -1,21 +1,76 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // ✅ Users: PUBLIC READ (for leaderboard), authenticated write own data
-    match /users/{userId} {
-      allow read: if true;  // Anyone can read for leaderboard (including unregistered)
-      allow write: if request.auth != null && request.auth.uid == userId;  // Only own data
+    // Helper function to check if user is admin
+    function isAdmin() {
+      return request.auth != null && (
+        // Hardcoded admin email (your email)
+        request.auth.token.email == 'babakartijaniyshaykhaniy@gmail.com' ||
+        // OR check admin collection (for additional admins)
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid))
+      );
     }
 
-    // ✅ Quiz Results: PUBLIC READ (for leaderboard), authenticated write own data  
+    // Questions: public read, admin write
+    match /questions/{questionId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Users: PUBLIC READ for leaderboard, users/admins write
+    match /users/{userId} {
+      allow read: if true;
+      allow write: if (request.auth != null && request.auth.uid == userId) || isAdmin();
+    }
+
+    // Achievements: user can read/write own, admin can read/write all
+    match /achievements/{userId} {
+      allow read, write: if (request.auth != null && request.auth.uid == userId) || isAdmin();
+    }
+
+    // Streaks: user can read/write own, admin can read/write all
+    match /streaks/{userId} {
+      allow read, write: if (request.auth != null && request.auth.uid == userId) || isAdmin();
+    }
+
+    // Optional explicit leaderboard collection: public read; user/admin write
+    match /leaderboard/{userId} {
+      allow read: if true;
+      allow write: if (request.auth != null && request.auth.uid == userId) || isAdmin();
+    }
+
+    // Quiz Results: PUBLIC READ for leaderboard, user writes own
     match /quizResults/{userId} {
-      allow read: if true;  // Public read for leaderboard display
+      allow read: if true;
       allow write: if request.auth != null && request.auth.uid == userId;
     }
 
-    // ✅ Admin catch-all: Full access for admins
+    // Timed Challenge Results: PUBLIC READ for challenge leaderboards
+    match /timedChallengeResults/{resultId} {
+      allow read: if true;
+      // User can create own result; validate userId and required fields
+      allow create: if request.auth != null &&
+        request.auth.uid == request.resource.data.userId &&
+        request.resource.data.keys().hasAll(['challengeId', 'score', 'grade', 'userId', 'isPersonalBest']);
+      // Admin can manage all results
+      allow update, delete: if isAdmin();
+    }
+
+    // Timed Challenge Profiles: user can manage own, admin can manage all
+    match /timedChallengeProfiles/{userId} {
+      // Keep profiles private except to owner/admin
+      allow read: if (request.auth != null && request.auth.uid == userId) || isAdmin();
+      allow write: if (request.auth != null && request.auth.uid == userId && request.resource.data.userId == userId) || isAdmin();
+    }
+
+    // Admins registry
+    match /admins/{adminId} {
+      allow read, write: if isAdmin();
+    }
+
+    // Catch‑all: Admins can manage any document (incl. nested)
     match /{document=**} {
-      allow read, write: if request.auth.token.email in ['babakartijaniyshaykhaniy@gmail.com'];
+      allow read, write: if isAdmin();
     }
   }
 }

@@ -50,8 +50,14 @@ export const storage = getStorage(app);
 // Initialize Google Auth Provider
 export const googleProvider = new GoogleAuthProvider();
 googleProvider.setCustomParameters({
-  prompt: 'select_account'
+  prompt: 'select_account',
+  // Add additional parameters to help with CORS
+  access_type: 'offline'
 });
+
+// Configure additional auth settings to help with popup issues
+googleProvider.addScope('email');
+googleProvider.addScope('profile');
 
 // Initialize Analytics (optional)
 export const analytics = getAnalytics(app);

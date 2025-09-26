@@ -7,14 +7,15 @@ import {
   doc,
   updateDoc,
   deleteDoc,
-  Timestamp 
+  Timestamp,
+  writeBatch,
+  collectionGroup
 } from 'firebase/firestore';
 import { firestore } from './config';
 
 // Admin user check (you can customize this logic)
 const ADMIN_EMAILS = [
-  'babakartijaniyshaykhaniy@gmail.com', // Your actual admin email
-  'admin@mansheu.com'    // Add more admin emails as needed
+  'babakartijaniyshaykhaniy@gmail.com'
 ];
 
 export const isAdmin = (userEmail: string | null): boolean => {
@@ -323,6 +324,180 @@ export const getSystemHealth = async (): Promise<{
       totalDocuments: 0,
       averageResponseTime: 0,
       errorRate: 100
+    };
+  }
+};
+
+// Admin function to reset all user scores and data
+export const resetAllUserScores = async (): Promise<{ success: boolean; message: string }> => {
+  try {
+    // List of all top-level collections to clear (skip 'admins')
+    const collections = [
+      'users',
+      'achievements',
+      'streaks',
+      'leaderboard',
+      'timedChallengeResults',
+      'timedChallengeProfiles'
+    ];
+    let totalDocuments = 0;
+    let batch = writeBatch(firestore);
+    let batchCount = 0;
+    // Delete all documents in each collection
+    for (const collectionName of collections) {
+      const collectionRef = collection(firestore, collectionName);
+      const snapshot = await getDocs(collectionRef);
+      for (const doc of snapshot.docs) {
+        batch.delete(doc.ref);
+        totalDocuments++;
+        batchCount++;
+        if (batchCount === 490) {
+          await batch.commit();
+          batch = writeBatch(firestore);
+          batchCount = 0;
+        }
+      }
+    }
+    // Also delete any documents in subcollections (if any)
+    const groupCollections = [
+      'leaderboard',
+      'timedChallengeResults',
+      'timedChallengeProfiles'
+    ];
+    for (const groupName of groupCollections) {
+      const groupQuery = collectionGroup(firestore, groupName);
+      const groupSnapshot = await getDocs(groupQuery);
+      for (const doc of groupSnapshot.docs) {
+        batch.delete(doc.ref);
+        totalDocuments++;
+        batchCount++;
+        if (batchCount === 490) {
+          await batch.commit();
+          batch = writeBatch(firestore);
+          batchCount = 0;
+        }
+      }
+    }
+    if (batchCount > 0) {
+      await batch.commit();
+    }
+    return {
+      success: true,
+      message: `Successfully reset ${totalDocuments} documents across all collections.`
+    };
+  } catch (error) {
+    console.error('❌ Error resetting all user scores:', error);
+    return {
+      success: false,
+      message: `Failed to reset all user scores: ${error instanceof Error ? error.message : 'Unknown error'}`
+    };
+  }
+};
+
+// Admin function to reset scores for a specific user
+export const resetUserScores = async (userId: string): Promise<{ success: boolean; message: string }> => {
+  try {
+    const batch = writeBatch(firestore);
+    const collections = [
+      'achievements',
+      'streaks', 
+      'leaderboard',
+      'timedChallengeResults',
+      'timedChallengeProfiles'
+    ];
+    
+    let totalDocuments = 0;
+    
+    // Reset user documents in each collection
+    for (const collectionName of collections) {
+      if (collectionName === 'timedChallengeResults') {
+        // For timedChallengeResults, we need to query by userId field
+        const collectionRef = collection(firestore, collectionName);
+        const q = query(collectionRef);
+        const snapshot = await getDocs(q);
+        
+        snapshot.forEach((docSnap) => {
+          const data = docSnap.data();
+          if (data.userId === userId) {
+            batch.delete(docSnap.ref);
+            totalDocuments++;
+          }
+        });
+      } else {
+        // For other collections, document ID is the userId
+        const docRef = doc(firestore, collectionName, userId);
+        batch.delete(docRef);
+        totalDocuments++;
+      }
+    }
+    
+    // Reset user stats but keep profile info
+    const userRef = doc(firestore, 'users', userId);
+    batch.update(userRef, {
+      totalScore: 0,
+      quizzesCompleted: 0,
+      correctAnswers: 0,
+      totalQuestionsAnswered: 0,
+      perfectScores: 0,
+      currentStreak: 0,
+      longestStreak: 0,
+      lastPlayed: null
+    });
+    
+    // Commit the batch
+    await batch.commit();
+    
+    return {
+      success: true,
+      message: `Successfully reset ${totalDocuments} documents for user ${userId}`
+    };
+    
+  } catch (error) {
+    console.error('❌ Error resetting user scores:', error);
+    return {
+      success: false,
+      message: `Failed to reset user scores: ${error instanceof Error ? error.message : 'Unknown error'}`
+    };
+  }
+};
+
+// Admin function to reset only timed challenge records for a specific user
+export const resetUserTimedChallenges = async (userId: string): Promise<{ success: boolean; message: string }> => {
+  try {
+    const batch = writeBatch(firestore);
+    let totalDocuments = 0;
+    
+    // Reset timed challenge results
+    const timedResultsRef = collection(firestore, 'timedChallengeResults');
+    const resultsQuery = query(timedResultsRef);
+    const resultsSnapshot = await getDocs(resultsQuery);
+    
+    resultsSnapshot.forEach((docSnap) => {
+      const data = docSnap.data();
+      if (data.userId === userId) {
+        batch.delete(docSnap.ref);
+        totalDocuments++;
+      }
+    });
+    
+    // Reset timed challenge profile
+    const profileRef = doc(firestore, 'timedChallengeProfiles', userId);
+    batch.delete(profileRef);
+    totalDocuments++;
+    
+    // Commit the batch
+    await batch.commit();
+    
+    return {
+      success: true,
+      message: `Successfully reset ${totalDocuments} timed challenge records for user ${userId}`
+    };
+    
+  } catch (error) {
+    console.error('❌ Error resetting user timed challenges:', error);
+    return {
+      success: false,
+      message: `Failed to reset timed challenges: ${error instanceof Error ? error.message : 'Unknown error'}`
     };
   }
 };

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth } from '../firebase/config';
-import { getUserAchievements, subscribeToUserAchievements, getUserDailyStreak } from '../firebase/achievements';
+import { getUserAchievements, subscribeToUserAchievements, getUserDailyStreak, subscribeToUserDailyStreak } from '../firebase/achievements';
 import AchievementBadge from './AchievementBadge';
 import StreakDisplay from './StreakDisplay';
 import { ACHIEVEMENT_DEFINITIONS } from '../types/achievements';
@@ -41,12 +41,17 @@ const AchievementDashboard: React.FC = () => {
     loadAchievements();
 
     // Subscribe to real-time updates
-    const unsubscribe = subscribeToUserAchievements(user.uid, (achievements) => {
+    const unsubscribeAchievements = subscribeToUserAchievements(user.uid, (achievements) => {
       setUserAchievements(achievements);
+    });
+    
+    const unsubscribeStreak = subscribeToUserDailyStreak(user.uid, (streak) => {
+      setDailyStreak(streak);
     });
 
     return () => {
-      if (unsubscribe) unsubscribe();
+      if (unsubscribeAchievements) unsubscribeAchievements();
+      if (unsubscribeStreak) unsubscribeStreak();
     };
   }, [user]);
 
@@ -201,11 +206,11 @@ const AchievementDashboard: React.FC = () => {
               <h3>Streak Information</h3>
               <div className="stat-row">
                 <span>Current Streak:</span>
-                <span className="stat-value">{userAchievements.currentStreak} days</span>
+                <span className="stat-value">{dailyStreak?.currentStreak || 0} days</span>
               </div>
               <div className="stat-row">
                 <span>Longest Streak:</span>
-                <span className="stat-value">{userAchievements.longestStreak} days</span>
+                <span className="stat-value">{dailyStreak?.longestStreak || 0} days</span>
               </div>
               <div className="stat-row">
                 <span>Perfect Scores:</span>

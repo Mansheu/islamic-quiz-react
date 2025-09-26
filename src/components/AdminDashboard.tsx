@@ -9,6 +9,9 @@ import {
   getSystemHealth,
   adminUpdateUser,
   adminDeleteUser,
+  resetAllUserScores,
+  resetUserScores,
+  resetUserTimedChallenges,
   type AdminAnalytics,
   type AdminUser
 } from '../firebase/admin';
@@ -48,7 +51,7 @@ const AdminDashboard: React.FC = () => {
     completionRate: number;
   }>>([]);
   const [systemHealth, setSystemHealth] = useState<SystemHealth | null>(null);
-  const [activeTab, setActiveTab] = useState<'overview' | 'users' | 'quiz-stats' | 'questions' | 'system'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'users' | 'quiz-stats' | 'questions' | 'system' | 'admin-actions'>('overview');
   const [error, setError] = useState<string | null>(null);
   
   // Questions management state
@@ -206,6 +209,42 @@ const AdminDashboard: React.FC = () => {
     }
   };
 
+  // Handle user score reset
+  const handleResetUserScores = async (userId: string, displayName: string) => {
+    if (window.confirm(`Are you sure you want to reset all scores and achievements for user "${displayName}"?\n\nThis will delete:\n- All quiz scores\n- All achievements\n- Daily streaks\n- Timed challenge records\n\nThis action cannot be undone.`)) {
+      try {
+        const result = await resetUserScores(userId);
+        if (result.success) {
+          showNotification({ message: `✅ Scores reset for ${displayName}`, type: 'success' });
+          await loadAdminData(); // Refresh the data
+        } else {
+          showNotification({ message: `❌ Failed to reset scores: ${result.message}`, type: 'error' });
+        }
+      } catch (err) {
+        console.error('Error resetting user scores:', err);
+        showNotification({ message: 'Error resetting user scores. Please try again.', type: 'error' });
+      }
+    }
+  };
+
+  // Handle user timed challenges reset
+  const handleResetUserTimedChallenges = async (userId: string, displayName: string) => {
+    if (window.confirm(`Are you sure you want to reset ONLY the timed challenge records for user "${displayName}"?\n\nThis will delete:\n- Timed challenge scores and grades\n- Personal best records\n- Challenge completion history\n\nRegular quiz achievements and streaks will be preserved.\n\nThis action cannot be undone.`)) {
+      try {
+        const result = await resetUserTimedChallenges(userId);
+        if (result.success) {
+          showNotification({ message: `✅ Timed challenge records reset for ${displayName}`, type: 'success' });
+          await loadAdminData(); // Refresh the data
+        } else {
+          showNotification({ message: `❌ Failed to reset timed challenges: ${result.message}`, type: 'error' });
+        }
+      } catch (err) {
+        console.error('Error resetting user timed challenges:', err);
+        showNotification({ message: 'Error resetting timed challenges. Please try again.', type: 'error' });
+      }
+    }
+  };
+
   // Handle user update
   const handleUpdateUser = async (userId: string, updates: Partial<{ displayName: string; totalScore: number; isBlocked: boolean }>) => {
     try {
@@ -308,6 +347,12 @@ const AdminDashboard: React.FC = () => {
             onClick={() => setActiveTab('system')}
           >
             ⚙️ System
+          </button>
+          <button 
+            className={`admin-tab ${activeTab === 'admin-actions' ? 'active' : ''}`}
+            onClick={() => setActiveTab('admin-actions')}
+          >
+            🔧 Admin Actions
           </button>
         </div>
 
@@ -430,6 +475,22 @@ const AdminDashboard: React.FC = () => {
                             className="btn-small btn-secondary"
                           >
                             Edit
+                          </button>
+                          <button 
+                            onClick={() => handleResetUserTimedChallenges(user.uid, user.displayName)}
+                            className="btn-small btn-info"
+                            style={{ backgroundColor: '#2196F3', borderColor: '#2196F3', color: 'white' }}
+                            title="Reset only timed challenge records"
+                          >
+                            Reset Timed
+                          </button>
+                          <button 
+                            onClick={() => handleResetUserScores(user.uid, user.displayName)}
+                            className="btn-small btn-warning"
+                            style={{ backgroundColor: '#ff9800', borderColor: '#ff9800' }}
+                            title="Reset all scores and achievements"
+                          >
+                            Reset All
                           </button>
                           <button 
                             onClick={() => handleDeleteUser(user.uid, user.displayName)}
@@ -606,6 +667,93 @@ const AdminDashboard: React.FC = () => {
                 <button className="btn btn-secondary" onClick={() => window.location.reload()}>
                   🔃 Reload Application
                 </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Admin Actions Tab */}
+        {activeTab === 'admin-actions' && (
+          <div className="admin-content">
+            <div className="admin-actions">
+              <h3>🔧 Administrative Actions</h3>
+              <div className="warning-banner">
+                <p>⚠️ <strong>Warning:</strong> These actions are irreversible and will permanently delete user data!</p>
+              </div>
+              
+              <div className="action-section">
+                <h4>Score Management</h4>
+                <div className="action-buttons">
+                  <button 
+                    className="btn btn-danger"
+                    onClick={async () => {
+                      if (window.confirm('⚠️ Are you absolutely sure you want to reset ALL user scores and achievements?\n\nThis will permanently delete:\n- All quiz scores\n- All achievements\n- All daily streaks\n- All timed challenge records\n- All leaderboard data\n\nThis action cannot be undone!')) {
+                        if (window.confirm('🚨 FINAL CONFIRMATION: This will delete ALL user data. Type YES to confirm.')) {
+                          try {
+                            const result = await resetAllUserScores();
+                            if (result.success) {
+                              showNotification({ message: '✅ All user scores have been reset successfully', type: 'success' });
+                              // Clear local persisted timed challenge data
+                              localStorage.removeItem('timed-challenge-storage');
+                              await loadAdminData(); // Refresh the data
+                              // Force reload to ensure all stats are refreshed
+                              setTimeout(() => window.location.reload(), 1000);
+                            } else {
+                              showNotification({ message: `❌ Failed to reset scores: ${result.message}`, type: 'error' });
+                            }
+                          } catch (error) {
+                            showNotification({ message: '❌ Error resetting scores', type: 'error' });
+                            console.error('Reset error:', error);
+                          }
+                        }
+                      }
+                    }}
+                  >
+                    🗑️ Reset ALL User Scores
+                  </button>
+                </div>
+                <p className="action-description">
+                  Permanently deletes all quiz scores, achievements, streaks, and leaderboard data for ALL users.
+                </p>
+              </div>
+
+              <div className="action-section">
+                <h4>Individual User Actions</h4>
+                <p className="action-description">
+                  To reset scores for individual users, use the "Reset Scores" button in the Users tab.
+                </p>
+              </div>
+
+              <div className="action-section">
+                <h4>Data Export</h4>
+                <div className="action-buttons">
+                  <button 
+                    className="btn btn-secondary"
+                    onClick={() => {
+                      // Export user data as JSON
+                      const data = {
+                        users: users,
+                        analytics: analytics,
+                        timestamp: new Date().toISOString()
+                      };
+                      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+                      const url = URL.createObjectURL(blob);
+                      const a = document.createElement('a');
+                      a.href = url;
+                      a.download = `admin-data-export-${new Date().toISOString().split('T')[0]}.json`;
+                      document.body.appendChild(a);
+                      a.click();
+                      document.body.removeChild(a);
+                      URL.revokeObjectURL(url);
+                      showNotification({ message: '📊 Admin data exported successfully', type: 'success' });
+                    }}
+                  >
+                    📊 Export Admin Data
+                  </button>
+                </div>
+                <p className="action-description">
+                  Export all admin analytics and user data as a JSON file for backup purposes.
+                </p>
               </div>
             </div>
           </div>

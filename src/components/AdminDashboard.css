@@ -849,3 +849,88 @@ body.dark .activity-time {
     width: 100%;
   }
 }
+
+/* Admin Actions Styles */
+.admin-actions {
+  background: var(--card-background);
+  border-radius: 8px;
+  padding: 20px;
+  border: 1px solid var(--card-border);
+}
+
+.admin-actions h3 {
+  color: var(--primary-color);
+  margin-bottom: 20px;
+}
+
+.warning-banner {
+  background-color: #fff3cd;
+  border: 1px solid #ffeaa7;
+  border-radius: 6px;
+  padding: 15px;
+  margin-bottom: 30px;
+  color: #856404;
+}
+
+.warning-banner strong {
+  font-weight: 600;
+}
+
+.action-section {
+  margin-bottom: 30px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--card-border);
+}
+
+.action-section:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+}
+
+.action-section h4 {
+  color: var(--text-color);
+  margin-bottom: 10px;
+  font-size: 18px;
+}
+
+.action-description {
+  color: var(--text-secondary);
+  font-size: 14px;
+  margin-top: 10px;
+  line-height: 1.4;
+}
+
+.btn-warning {
+  background-color: #ff9800;
+  border-color: #ff9800;
+  color: white;
+}
+
+.btn-warning:hover {
+  background-color: #e68900;
+  border-color: #e68900;
+}
+
+.btn-info {
+  background-color: #2196F3;
+  border-color: #2196F3;
+  color: white;
+}
+
+.btn-info:hover {
+  background-color: #1976D2;
+  border-color: #1976D2;
+}
+
+/* User actions layout improvement */
+.user-actions {
+  display: flex;
+  gap: 5px;
+  flex-wrap: wrap;
+}
+
+.user-actions .btn-small {
+  min-width: 60px;
+  font-size: 11px;
+  padding: 4px 8px;
+}
