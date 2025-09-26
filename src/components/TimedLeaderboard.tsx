@@ -12,9 +12,9 @@ export const TimedLeaderboard: React.FC = () => {
     console.log('📊 Personal Bests Data:', personalBests);
     const allGrades = (Object.values(personalBests) as ChallengeResult[]).map(b => b.grade);
     console.log('🎯 All Grades:', allGrades);
-    const gradeOrder = { 'S': 0, 'A': 1, 'B': 2, 'C': 3, 'D': 4 };
+    const gradeOrder = { S: 0, A: 1, B: 2, C: 3, D: 4 } as const;
     const bestGrade = allGrades.sort((a, b) => {
-      return (gradeOrder[a as keyof typeof gradeOrder] || 5) - (gradeOrder[b as keyof typeof gradeOrder] || 5);
+      return (gradeOrder[a as keyof typeof gradeOrder] ?? 5) - (gradeOrder[b as keyof typeof gradeOrder] ?? 5);
     })[0];
     console.log('⭐ Calculated Best Grade:', bestGrade);
     
@@ -46,6 +46,14 @@ export const TimedLeaderboard: React.FC = () => {
       minute: '2-digit'
     });
   };
+
+  // Compute overall best grade across all personal bests (S > A > B > C > D)
+  const bestGrade = React.useMemo(() => {
+    const gradeOrder: Record<string, number> = { S: 0, A: 1, B: 2, C: 3, D: 4 };
+    const grades = (Object.values(personalBests) as ChallengeResult[]).map(b => b.grade);
+    if (grades.length === 0) return 'D';
+    return grades.sort((a, b) => (gradeOrder[a] ?? 99) - (gradeOrder[b] ?? 99))[0];
+  }, [personalBests]);
 
   return (
     <div className="timed-leaderboard">
@@ -157,28 +165,7 @@ export const TimedLeaderboard: React.FC = () => {
               <span className="overall-icon">⭐</span>
               <div>
                 <span className="overall-label">Best Grade</span>
-                <span 
-                  className="overall-value"
-                  style={{ 
-                    color: getGradeColor((() => {
-                      const allGrades = (Object.values(personalBests) as ChallengeResult[]).map(b => b.grade);
-                      const gradeOrder = { 'S': 0, 'A': 1, 'B': 2, 'C': 3, 'D': 4 };
-                      const bestGrade = allGrades.sort((a, b) => {
-                        return (gradeOrder[a as keyof typeof gradeOrder] || 5) - (gradeOrder[b as keyof typeof gradeOrder] || 5);
-                      })[0];
-                      return bestGrade;
-                    })())
-                  }}
-                >
-                  {(() => {
-                    const allGrades = (Object.values(personalBests) as ChallengeResult[]).map(b => b.grade);
-                    const gradeOrder = { 'S': 0, 'A': 1, 'B': 2, 'C': 3, 'D': 4 };
-                    const bestGrade = allGrades.sort((a, b) => {
-                      return (gradeOrder[a as keyof typeof gradeOrder] || 5) - (gradeOrder[b as keyof typeof gradeOrder] || 5);
-                    })[0];
-                    return bestGrade;
-                  })()}
-                </span>
+                <span className="overall-value" style={{ color: getGradeColor(bestGrade) }}>{bestGrade}</span>
               </div>
             </div>
             <div className="overall-item">
