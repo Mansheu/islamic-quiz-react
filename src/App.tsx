@@ -190,6 +190,7 @@ function App() {
                 className={`nav-tab ${currentView === 'quiz' ? 'active' : ''}`}
                 onClick={() => handleViewChange('quiz')}
               >
+                <span className="nav-icon" aria-hidden>🎯</span><span className="nav-label">Quiz</span>
                 🎯 Quiz
               </button>
               {/* Only show timed challenge if user is signed in */}
@@ -198,6 +199,7 @@ function App() {
                   className={`nav-tab ${currentView === 'timed-challenge' ? 'active' : ''}`}
                   onClick={() => handleViewChange('timed-challenge')}
                 >
+                  <span className="nav-icon" aria-hidden>⚡</span><span className="nav-label">Challenge</span>
                   ⚡ Challenge
                 </button>
               )}
@@ -205,12 +207,14 @@ function App() {
                 className={`nav-tab ${currentView === 'leaderboard' ? 'active' : ''}`}
                 onClick={() => handleViewChange('leaderboard')}
               >
+                <span className="nav-icon" aria-hidden>🏆</span><span className="nav-label">Leaderboard</span>
                 🏆 Leaderboard
               </button>
               <button 
                 className={`nav-tab ${currentView === 'achievements' ? 'active' : ''}`}
                 onClick={() => handleViewChange('achievements')}
               >
+                <span className="nav-icon" aria-hidden>🎖️</span><span className="nav-label">Achievements</span>
                 🎖️ Achievements
               </button>
               {user && isAdmin(user.email) && (
@@ -218,6 +222,7 @@ function App() {
                   className={`nav-tab ${currentView === 'admin' ? 'active' : ''}`}
                   onClick={() => handleViewChange('admin')}
                 >
+                  <span className="nav-icon" aria-hidden>🛠️</span><span className="nav-label">Admin</span>
                   🛠️ Admin
                 </button>
               )}

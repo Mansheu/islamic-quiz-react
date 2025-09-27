@@ -71,8 +71,8 @@ export const getUserAchievements = async (userId: string): Promise<UserAchieveme
         lastQuizDate: data.lastQuizDate?.toDate()
       } as UserAchievements;
     } else {
-      // Initialize achievements for new user
-      return await initializeUserAchievements(userId);
+      // Do not auto-initialize here; let callers decide when to create.
+      return null;
     }
   } catch (error) {
     console.error('Error getting user achievements:', error);
@@ -92,8 +92,10 @@ export const updateUserProgress = async (
     isTimedPerfect?: boolean;
   }
 ): Promise<Achievement[]> => {
-  const userAchievements = await getUserAchievements(userId);
-  if (!userAchievements) return [];
+  let userAchievements = await getUserAchievements(userId);
+  if (!userAchievements) {
+    userAchievements = await initializeUserAchievements(userId);
+  }
 
   const newlyUnlocked: Achievement[] = [];
   const batch = writeBatch(firestore);

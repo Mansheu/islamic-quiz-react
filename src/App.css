@@ -314,7 +314,7 @@ header h1 {
   background: transparent;
   border: none;
   border-radius: 8px;
-  font-size: 16px;
+  font-size: 0; /* hide stray text nodes; use spans for text */
   font-weight: bold;
   cursor: pointer;
   transition: all 0.3s ease;
@@ -322,6 +322,19 @@ header h1 {
   font-family: "DM Sans", sans-serif;
   white-space: nowrap; /* Prevent text wrapping */
   text-align: center; /* Center text within each tab */
+}
+
+/* Icon + label inside nav tabs */
+.nav-tab .nav-icon {
+  font-size: 18px;
+  line-height: 1;
+  display: inline-block;
+  margin-right: 6px;
+}
+
+.nav-tab .nav-label {
+  font-size: 16px;
+  line-height: 1.1;
 }
 
 .nav-tab:hover {
@@ -344,6 +357,10 @@ header h1 {
 @media (max-width: 768px) {
   .navigation-container {
     margin-bottom: 14px;
+    position: sticky;
+    bottom: 8px;
+    z-index: 100;
+    backdrop-filter: saturate(120%) blur(6px);
   }
 
   /* Turn tabs into a compact grid on mobile for better organization */
@@ -361,7 +378,7 @@ header h1 {
     min-width: 0;
     max-width: none;
     padding: 10px 12px;
-    font-size: 14px;
+    font-size: 0; /* keep using spans */
     background: var(--secondary-color);
     border: 1px solid var(--card-border);
     display: flex;
@@ -389,8 +406,19 @@ header h1 {
   }
 
   .nav-tab {
-    font-size: 13px;
+    font-size: 0;
     padding: 10px 10px;
+  }
+}
+
+/* Icon-only on ultra-narrow screens */
+@media (max-width: 360px) {
+  .nav-tab .nav-label {
+    display: none;
+  }
+  .nav-tab .nav-icon {
+    margin-right: 0;
+    font-size: 20px;
   }
 }
 

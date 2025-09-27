@@ -4,7 +4,6 @@ import { auth } from '../firebase/config';
 import { getUserAchievements, subscribeToUserAchievements, getUserDailyStreak, subscribeToUserDailyStreak } from '../firebase/achievements';
 import AchievementBadge from './AchievementBadge';
 import StreakDisplay from './StreakDisplay';
-import { ACHIEVEMENT_DEFINITIONS } from '../types/achievements';
 import type { UserAchievements, DailyStreak } from '../types/achievements';
 import './AchievementDashboard.css';
 
@@ -62,12 +61,13 @@ const AchievementDashboard: React.FC = () => {
     : (userAchievements?.achievements.filter(achievement => achievement.category === selectedCategory) || []);
 
   const getStatistics = () => {
-    if (!userAchievements) return { unlocked: 0, total: 0, percentage: 0 };
-    
+    // If no achievements doc (e.g., after admin reset), show zeros across the board
+    if (!userAchievements || !userAchievements.achievements) {
+      return { unlocked: 0, total: 0, percentage: 0 };
+    }
     const unlocked = userAchievements.achievements.filter(a => a.isUnlocked).length;
-    const total = ACHIEVEMENT_DEFINITIONS.length;
-    const percentage = Math.round((unlocked / total) * 100);
-    
+    const total = userAchievements.achievements.length || 0;
+    const percentage = total > 0 ? Math.round((unlocked / total) * 100) : 0;
     return { unlocked, total, percentage };
   };
 
