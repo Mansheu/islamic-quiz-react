@@ -24,7 +24,6 @@ const QuizComponent: React.FC = () => {
     completeQuiz,
     getProgress,
     startRetryIncorrect,
-    startNewQuizSameTopic,
     getIncorrectQuestionIndexes,
     resetQuiz,
     isPracticeMode,
