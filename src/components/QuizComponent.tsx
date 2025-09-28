@@ -23,6 +23,11 @@ const QuizComponent: React.FC = () => {
     previousQuestion,
     completeQuiz,
     getProgress,
+    startRetryIncorrect,
+    startNewQuizSameTopic,
+    getIncorrectQuestionIndexes,
+    resetQuiz,
+    isPracticeMode,
   } = useQuizStore();
 
   const [user] = useAuthState(auth);
@@ -31,6 +36,7 @@ const QuizComponent: React.FC = () => {
   const [isSavingScore, setIsSavingScore] = useState(false);
   const [showGuestNotification, setShowGuestNotification] = useState(false);
   const [unlockedAchievements, setUnlockedAchievements] = useState<Achievement[]>([]);
+  const [reviewFilter, setReviewFilter] = useState<'all' | 'incorrect' | 'correct'>('all');
 
   const question = getCurrentQuestion();
   const isAnswered = currentQuestion in answeredQuestions;
@@ -59,8 +65,8 @@ const QuizComponent: React.FC = () => {
       // Complete the quiz first
       completeQuiz();
       
-      // Save score to user profile if user is authenticated
-      if (user) {
+      // Save score to user profile if user is authenticated and not practice mode
+      if (user && !isPracticeMode) {
         setIsSavingScore(true);
         try {
           console.log('💾 Saving quiz score:', {
@@ -98,7 +104,7 @@ const QuizComponent: React.FC = () => {
         } finally {
           setIsSavingScore(false);
         }
-      } else {
+      } else if (!user) {
         // Show guest notification if user is not authenticated
         setShowGuestNotification(true);
       }
@@ -123,6 +129,11 @@ const QuizComponent: React.FC = () => {
       <div className="quiz-container">
         <div className="card">
           <h2>Quiz Completed!</h2>
+          {isPracticeMode && (
+            <div className="score-save-status" style={{ marginTop: '8px' }}>
+              <p>Practice mode: results are not saved and achievements are not awarded.</p>
+            </div>
+          )}
           <div className="score-display">
             <p className="score-text">
               Your Score: <span className="score-number">{score}</span>/{filteredQuestions.length}
@@ -132,7 +143,7 @@ const QuizComponent: React.FC = () => {
             </p>
           </div>
           
-          {user && (
+          {user && !isPracticeMode && (
             <div className="score-save-status">
               {isSavingScore ? (
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -145,12 +156,81 @@ const QuizComponent: React.FC = () => {
             </div>
           )}
           
-          <button 
-            className="btn btn-primary"
-            onClick={() => window.location.reload()}
-          >
-            Start New Quiz
-          </button>
+          {/* Minimal controls: primary + overflow (hidden when all correct) */}
+          {getIncorrectQuestionIndexes().length === 0 ? (
+            <div className="nav-buttons" style={{ marginTop: '16px' }}>
+              <button className="btn btn-secondary" onClick={() => resetQuiz()}>
+                Back to Categories
+              </button>
+            </div>
+          ) : (
+            <div className="nav-buttons" style={{ marginTop: '16px' }}>
+              <button
+                className="btn btn-primary"
+                onClick={() => startRetryIncorrect()}
+              >
+                Retry Incorrect
+              </button>
+              <button
+                className="btn btn-secondary"
+                style={{ marginLeft: 8 }}
+                onClick={() => resetQuiz()}
+              >
+                Back to Categories
+              </button>
+            </div>
+          )}
+
+          {/* Review list with filter toggles */}
+          <div style={{ marginTop: '24px' }}>
+            <h3>Review</h3>
+            <div style={{ margin: '8px 0 16px' }}>
+              <label htmlFor="review-filter" style={{ marginRight: 8 }}>Filter:</label>
+              <select
+                id="review-filter"
+                value={reviewFilter}
+                onChange={(e) => setReviewFilter(e.target.value as 'all' | 'incorrect' | 'correct')}
+                className="filter-select"
+              >
+                <option value="all">All ({filteredQuestions.length})</option>
+                <option value="incorrect">Incorrect ({getIncorrectQuestionIndexes().length})</option>
+                <option value="correct">Correct ({filteredQuestions.length - getIncorrectQuestionIndexes().length})</option>
+              </select>
+            </div>
+            {filteredQuestions.map((q, idx) => {
+              const ans = answeredQuestions[idx];
+              const isCorrect = ans?.correct;
+              if (reviewFilter === 'incorrect' && isCorrect) return null;
+              if (reviewFilter === 'correct' && !isCorrect) return null;
+              return (
+                <div key={idx} className="card" style={{ padding: '16px', marginBottom: '12px' }}>
+                  <div className="question" style={{ marginBottom: '8px' }}>
+                    {idx + 1}. {q.question}
+                  </div>
+                  <div style={{ marginBottom: '6px' }}>
+                    <strong>Your answer:</strong>{' '}
+                    <span className={isCorrect ? 'option correct' : 'option incorrect'} style={{ display: 'inline-block', padding: '4px 8px' }}>
+                      {ans?.selected}
+                    </span>
+                  </div>
+                  {!isCorrect && (
+                    <div style={{ marginBottom: '6px' }}>
+                      <strong>Correct answer:</strong>{' '}
+                      <span className="option correct" style={{ display: 'inline-block', padding: '4px 8px' }}>
+                        {q.answer}
+                      </span>
+                    </div>
+                  )}
+                  {q.explanation && (
+                    <div className="explanation" style={{ marginTop: '6px' }}>
+                      <h4>Explanation:</h4>
+                      <p>{q.explanation}</p>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
         </div>
       </div>
     );

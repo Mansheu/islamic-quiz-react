@@ -6,6 +6,8 @@ import { QuestionService } from '../services/questionService';
 interface QuizStore extends QuizState {
   // Guest mode flag
   isGuestMode: boolean;
+  // Practice mode flag (e.g., retry incorrect only)
+  isPracticeMode: boolean;
   
   // Loading states
   isLoadingQuestions: boolean;
@@ -19,11 +21,17 @@ interface QuizStore extends QuizState {
   completeQuiz: () => void;
   initializeQuestions: () => Promise<void>;
   refreshQuestions: () => Promise<void>;
+  // Review / retry
+  startRetryIncorrect: () => void;
+  startNewQuizSameTopic: () => Promise<void>;
+  startRetryQuizSameSet: () => void;
   
   // Getters
   getCurrentQuestion: () => Question | null;
   getProgress: () => number;
   getAvailableTopics: () => Promise<string[]>;
+  getIncorrectQuestionIndexes: () => number[];
+  getResults: () => { total: number; correct: number; incorrect: number[] };
 }
 
 const shuffleArray = <T>(array: T[]): T[] => {
@@ -48,6 +56,7 @@ export const useQuizStore = create<QuizStore>()(
         isQuizCompleted: false,
         selectedTopic: 'All Topics',
         isGuestMode: false,
+        isPracticeMode: false,
         isLoadingQuestions: false,
 
         // Initialize question service
@@ -90,6 +99,7 @@ export const useQuizStore = create<QuizStore>()(
               isQuizStarted: true,
               isQuizCompleted: false,
               isGuestMode: isGuest,
+              isPracticeMode: false,
             });
           } catch (error) {
             console.error('Error starting quiz:', error);
@@ -103,6 +113,7 @@ export const useQuizStore = create<QuizStore>()(
               isQuizStarted: false,
               isQuizCompleted: false,
               isGuestMode: isGuest,
+              isPracticeMode: false,
             });
           } finally {
             set({ isLoadingQuestions: false });
@@ -156,6 +167,7 @@ export const useQuizStore = create<QuizStore>()(
             isQuizCompleted: false,
             selectedTopic: 'All Topics',
             isGuestMode: false,
+            isPracticeMode: false,
           });
         },
 
@@ -175,6 +187,27 @@ export const useQuizStore = create<QuizStore>()(
           return ((state.currentQuestion + 1) / state.filteredQuestions.length) * 100;
         },
 
+        getIncorrectQuestionIndexes: () => {
+          const state = get();
+          const idxs: number[] = [];
+          for (let i = 0; i < state.filteredQuestions.length; i++) {
+            const ans = state.answeredQuestions[i];
+            if (ans && !ans.correct) idxs.push(i);
+          }
+          return idxs;
+        },
+
+        getResults: () => {
+          const state = get();
+          const incorrect = get().getIncorrectQuestionIndexes();
+          const correct = Object.values(state.answeredQuestions).filter(a => a.correct).length;
+          return {
+            total: state.filteredQuestions.length,
+            correct,
+            incorrect,
+          };
+        },
+
         getAvailableTopics: async () => {
           try {
             return await QuestionService.getAvailableTopics();
@@ -182,6 +215,54 @@ export const useQuizStore = create<QuizStore>()(
             console.error('Error getting available topics:', error);
             return ['All Topics']; // Fallback
           }
+        },
+
+        // Review / retry helpers
+        startRetryIncorrect: () => {
+          const state = get();
+          const incorrectIdx = get().getIncorrectQuestionIndexes();
+          if (incorrectIdx.length === 0) {
+            // Nothing to retry; keep results as is
+            return;
+          }
+          const questions = incorrectIdx
+            .map(i => state.filteredQuestions[i])
+            .filter(Boolean);
+          const baseTopic = state.selectedTopic.replace(/ \(Retry\)$/i, '');
+          set({
+            filteredQuestions: questions,
+            currentQuestion: 0,
+            answeredQuestions: {},
+            score: 0,
+            isQuizStarted: true,
+            isQuizCompleted: false,
+            selectedTopic: `${baseTopic} (Retry)`,
+            isPracticeMode: true,
+          });
+        },
+
+        startNewQuizSameTopic: async () => {
+          const state = get();
+          const baseTopic = state.selectedTopic.replace(/ \(Retry\)$/i, '');
+          await get().startQuiz(baseTopic, state.isGuestMode);
+        },
+
+        // Retry the same set of questions (order remixed), practice mode
+        startRetryQuizSameSet: () => {
+          const state = get();
+          if (!state.filteredQuestions || state.filteredQuestions.length === 0) return;
+          const remixed = shuffleArray(state.filteredQuestions);
+          const baseTopic = state.selectedTopic.replace(/ \(Retry\)$/i, '');
+          set({
+            filteredQuestions: remixed,
+            currentQuestion: 0,
+            answeredQuestions: {},
+            score: 0,
+            isQuizStarted: true,
+            isQuizCompleted: false,
+            selectedTopic: `${baseTopic} (Retry)`,
+            isPracticeMode: true,
+          });
         },
       }),
       {
