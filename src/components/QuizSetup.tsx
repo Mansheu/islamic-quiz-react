@@ -45,7 +45,7 @@ const QuizSetup: React.FC<QuizSetupProps> = ({ isGuestMode = false }) => {
   return (
     <div className="quiz-setup">
       <div className="card">
-        <h2>Islamic Quiz App</h2>
+        <h2>Regular Quiz</h2>
         <p>Test your knowledge of Islam with our comprehensive quiz!</p>
         
         {isGuestMode && (
@@ -102,7 +102,7 @@ const QuizSetup: React.FC<QuizSetupProps> = ({ isGuestMode = false }) => {
             <span className="feature-badge">Detailed explanations for each answer</span>
             <span className="feature-badge">Progress tracking</span>
             <span className="feature-badge">Score calculation</span>
-            <span className="feature-badge">10 randomized questions per quiz</span>
+            <span className="feature-badge">All available questions per quiz</span>
           </div>
         </div>
       </div>

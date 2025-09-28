@@ -54,6 +54,7 @@ const ScrollToTop: React.FC = () => {
               strokeLinejoin="round"
             />
           </svg>
+          <span className="scroll-to-top-label">Top</span>
         </button>
       )}
     </div>

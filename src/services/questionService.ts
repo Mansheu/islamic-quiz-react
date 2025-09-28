@@ -63,12 +63,28 @@ export class QuestionService {
         }
 
         const questions = await getAllQuestions();
+        // Also include curated/static Islam 101 when using Firebase
+        let extras: Question[] = [];
+        try {
+          const mod = await import('../data/islam101');
+          extras = mod.islam101Questions || [];
+        } catch {
+          extras = [];
+        }
+
+        // Merge + de-duplicate by question text + answer
+        const mergedMap = new Map<string, Question>();
+        for (const q of [...questions, ...extras]) {
+          const key = `${q.question}__${q.answer}`.toLowerCase();
+          if (!mergedMap.has(key)) mergedMap.set(key, q);
+        }
+        const merged = Array.from(mergedMap.values());
         
         // Cache the results
-        this.cachedQuestions = questions;
+        this.cachedQuestions = merged;
         this.lastCacheUpdate = Date.now();
         
-        return questions;
+        return merged;
       } else {
         // Return static questions (imported synchronously)
         const { allQuestions } = await import('../data/questions');
@@ -96,7 +112,29 @@ export class QuestionService {
         if (topic === 'All Topics') {
           return await this.getAllQuestions();
         }
-        return await getFirebaseQuestionsByTopic(topic);
+        const fb = await getFirebaseQuestionsByTopic(topic);
+        let extras: Question[] = [];
+        // Always include curated Islam 101 set when that topic is selected
+        if (topic === 'Islam 101') {
+          try {
+            const mod = await import('../data/islam101');
+            extras = (mod.islam101Questions || []).filter(q => q.topic === 'Islam 101');
+          } catch {
+            extras = [];
+          }
+        }
+        let combined = [...fb, ...extras];
+        if (combined.length === 0) {
+          // Fallback to static dataset if still empty
+          combined = getStaticQuestionsByTopic(topic);
+        }
+        // De-duplicate
+        const map = new Map<string, Question>();
+        for (const q of combined) {
+          const key = `${q.question}__${q.answer}`.toLowerCase();
+          if (!map.has(key)) map.set(key, q);
+        }
+        return Array.from(map.values());
       } else {
         return getStaticQuestionsByTopic(topic);
       }
@@ -119,7 +157,10 @@ export class QuestionService {
         }
 
         const topics = await getFirebaseAvailableTopics();
-        const allTopics = ['All Topics', ...topics];
+        // Always include curated categories that may exist in static data
+        const curated = ['Islam 101'];
+        const set = new Set<string>(['All Topics', ...topics, ...curated]);
+        const allTopics = Array.from(set);
         
         // Cache the results
         this.cachedTopics = allTopics;

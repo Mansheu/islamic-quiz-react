@@ -1,4 +1,5 @@
 import type { Question } from '../types';
+import { islam101Questions } from './islam101';
 
 export const allQuestions: Question[] = [
   // Quranic Basics
@@ -200,7 +201,47 @@ export const allQuestions: Question[] = [
     topic: "Ethics and Morality in Islam",
     explanation: "Surah Al-Hujurat condemns backbiting, likening it to eating the flesh of one's dead brother."
   }
+  ,
+  // Islam 101 (New Category)
+  {
+    question: "What does the word 'Islam' mean?",
+    options: ["Faith", "Peace and submission", "Prayer", "Charity"],
+    answer: "Peace and submission",
+    topic: "Islam 101",
+    explanation: "Islam means submission to the will of Allah and is etymologically related to 'salam' (peace)."
+  },
+  {
+    question: "Who is the final messenger in Islam?",
+    options: ["Prophet Musa", "Prophet Isa", "Prophet Ibrahim", "Prophet Muhammad"],
+    answer: "Prophet Muhammad",
+    topic: "Islam 101",
+    explanation: "Prophet Muhammad (peace be upon him) is the last and final messenger sent to all mankind."
+  },
+  {
+    question: "How many pillars of Islam are there?",
+    options: ["Three", "Four", "Five", "Six"],
+    answer: "Five",
+    topic: "Islam 101",
+    explanation: "The five pillars are Shahada, Salah, Zakat, Sawm, and Hajj."
+  },
+  {
+    question: "What is the holy book of Islam?",
+    options: ["Torah", "Gospel", "Quran", "Psalms"],
+    answer: "Quran",
+    topic: "Islam 101",
+    explanation: "The Quran is the final revelation from Allah, preserved in Arabic."
+  },
+  {
+    question: "Which city contains the Kaaba, the direction of Muslim prayer?",
+    options: ["Medina", "Mecca", "Jerusalem", "Cairo"],
+    answer: "Mecca",
+    topic: "Islam 101",
+    explanation: "Muslims face the Kaaba in Mecca during Salah."
+  }
 ];
+
+// Append Islam 101 set parsed from raw text (if present)
+allQuestions.push(...islam101Questions);
 
 export const getQuestionsByTopic = (topic: string): Question[] => {
   if (topic === 'All Topics') {

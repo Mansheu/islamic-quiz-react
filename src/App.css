@@ -1,4 +1,4 @@
-﻿/* Import Google Fonts */
+/* Import Google Fonts */
 @import url("https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&display=swap");
 
 /* Global Reset and Font */
@@ -260,13 +260,49 @@ header h1 {
   justify-content: center; /* center whole navigation group */
 }
 
+/* Sticky bottom behavior for the nav tabs on scroll (all viewports) */
+.navigation-container.sticky-bottom {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 16px);
+  padding: 0 12px;
+  z-index: 1100;
+  pointer-events: none; /* let only the bar receive events */
+}
+.navigation-container.sticky-bottom .navigation-tabs {
+  pointer-events: all;
+  width: 100%;
+  max-width: 900px;
+  margin: 0 auto;
+  background: rgba(255, 255, 255, 0.92);
+  border-radius: 12px;
+  border: 1px solid var(--card-border);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+}
+[data-theme="dark"] .navigation-container.sticky-bottom .navigation-tabs,
+
+
+/* Icon-only when sticky to reduce height and avoid covering content */
+.navigation-container.sticky-bottom .tab-label { display: none; }
+.navigation-container.sticky-bottom .tab-icon { margin-right: 0; font-size: 20px; }
+.navigation-container.sticky-bottom 
+
+/* Icon + label spans to allow icon-only sticky state */
+.tab-icon { font-size: 18px; margin-right: 6px; }
+.tab-label { font-size: 16px; }
+
+
+
 .navigation-tabs {
   display: flex;
   gap: 8px;
-  background: rgba(var(--accent-color-rgb), 0.1);
+  /* Match sticky styling even when not sticky */
+  background: rgba(255, 255, 255, 0.92);
   padding: 8px;
   border-radius: 12px;
-  border: 1px solid rgba(var(--accent-color-rgb), 0.2);
+  border: 1px solid var(--card-border);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
   overflow-x: auto;
   scroll-behavior: smooth;
   scrollbar-width: none; /* Firefox */
@@ -277,6 +313,13 @@ header h1 {
 
 .navigation-tabs::-webkit-scrollbar {
   display: none; /* Chrome/Safari */
+}
+
+/* Dark theme: apply same container styling as sticky */
+[data-theme="dark"] .navigation-tabs,
+body.dark .navigation-tabs {
+  background: rgba(37, 61, 44, 0.92);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
 }
 
 .scroll-btn {
@@ -306,15 +349,18 @@ header h1 {
   transform: translateY(0);
 }
 
+
+
+/* Nav tab base styling (from former design) */
 .nav-tab {
   flex: 1; /* Equal distribution */
   min-width: 120px; /* Reduced minimum width */
-  max-width: 160px; /* Add maximum width for consistency */
+  max-width: 160px; /* Consistent max width */
   padding: 15px 20px;
   background: transparent;
   border: none;
   border-radius: 8px;
-  font-size: 0; /* hide stray text nodes; use spans for text */
+  font-size: 16px; /* fallback for plain text labels */
   font-weight: bold;
   cursor: pointer;
   transition: all 0.3s ease;
@@ -324,18 +370,25 @@ header h1 {
   text-align: center; /* Center text within each tab */
 }
 
-/* Icon + label inside nav tabs */
-.nav-tab .nav-icon {
+/* Support both .tab-* and .nav-* icon/label classnames */
+.nav-tab .tab-icon, .nav-tab .nav-icon {
   font-size: 18px;
   line-height: 1;
   display: inline-block;
   margin-right: 6px;
 }
 
-.nav-tab .nav-label {
+.nav-tab .tab-label, .nav-tab .nav-label {
   font-size: 16px;
   line-height: 1.1;
 }
+
+/* Icon + label spans to allow icon-only sticky state */
+.tab-icon { font-size: 18px; margin-right: 6px; }
+.tab-label { font-size: 16px; }
+
+
+/* (icon/label splits removed) */
 
 .nav-tab:hover {
   background: rgba(var(--accent-color), 0.15);
@@ -357,10 +410,6 @@ header h1 {
 @media (max-width: 768px) {
   .navigation-container {
     margin-bottom: 14px;
-    position: sticky;
-    bottom: 8px;
-    z-index: 100;
-    backdrop-filter: saturate(120%) blur(6px);
   }
 
   /* Turn tabs into a compact grid on mobile for better organization */
@@ -374,11 +423,12 @@ header h1 {
     padding: 8px 6px;
   }
 
+  /* Tab chip look on mobile */
   .nav-tab {
     min-width: 0;
     max-width: none;
     padding: 10px 12px;
-    font-size: 0; /* keep using spans */
+    font-size: 14px; /* readable on mobile */
     background: var(--secondary-color);
     border: 1px solid var(--card-border);
     display: flex;
@@ -405,22 +455,13 @@ header h1 {
     gap: 6px;
   }
 
+  /* Slightly denser tabs on very small screens */
   .nav-tab {
-    font-size: 0;
+    font-size: 12px;
     padding: 10px 10px;
   }
 }
-
-/* Icon-only on ultra-narrow screens */
-@media (max-width: 360px) {
-  .nav-tab .nav-label {
-    display: none;
-  }
-  .nav-tab .nav-icon {
-    margin-right: 0;
-    font-size: 20px;
-  }
-}
+/* (icon-only ultra-narrow mode removed) */
 
 /* Card Layout */
 .card {
@@ -848,10 +889,12 @@ select:focus {
     font-size: 2.2rem;
   }
   
-  .nav-tab {
-    padding: 14px 18px;
-    font-size: 15px;
-  }
+  
+
+/* Icon + label spans to allow icon-only sticky state */
+.tab-icon { font-size: 18px; margin-right: 6px; }
+.tab-label { font-size: 16px; }
+
 }
 
 /* Small screens (phones, 600px to 767px) */
@@ -874,10 +917,12 @@ select:focus {
     font-size: 2rem;
   }
   
-  .nav-tab {
-    padding: 12px 16px;
-    font-size: 14px;
-  }
+  
+
+/* Icon + label spans to allow icon-only sticky state */
+.tab-icon { font-size: 18px; margin-right: 6px; }
+.tab-label { font-size: 16px; }
+
 }
 
 /* Extra small screens (phones, up to 599px) */
@@ -968,15 +1013,12 @@ select:focus {
     box-sizing: border-box;
   }
 
-  .nav-tab {
-    padding: 8px 8px;
-    font-size: 13px;
-    min-width: 0; /* Allow shrinking if needed */
-    flex: 1; /* Distribute space evenly */
-    text-align: center;
-    white-space: nowrap; /* Prevent text wrapping */
-    box-sizing: border-box;
-  }
+  
+
+/* Icon + label spans to allow icon-only sticky state */
+.tab-icon { font-size: 18px; margin-right: 6px; }
+.tab-label { font-size: 16px; }
+
 
   .nav-tab:nth-child(3) {
     font-size: 12px; /* Slightly smaller for leaderboard tab on mobile */
@@ -1164,12 +1206,12 @@ select:focus {
     max-width: 100%;
   }
   
-  .nav-tab {
-    padding: 6px 4px;
-    font-size: 11px;
-    min-width: 0;
-    flex: 1;
-  }
+  
+
+/* Icon + label spans to allow icon-only sticky state */
+.tab-icon { font-size: 18px; margin-right: 6px; }
+.tab-label { font-size: 16px; }
+
   
   .nav-tab:nth-child(3) {
     font-size: 10px;
@@ -1256,4 +1298,11 @@ select:focus {
   margin: 0;
   color: var(--primary-color);
 }
+
+/* Overrides: keep labels visible in sticky nav (undo icon-only mode) */
+.navigation-container.sticky-bottom .tab-label { display: inline; }
+.navigation-container.sticky-bottom .tab-icon { margin-right: 6px; font-size: 18px; }
+.navigation-container.sticky-bottom .nav-tab { padding: 15px 20px; min-width: 120px; max-width: 160px; }
+
+/* (Former chip override block removed to restore former button styling) */
 

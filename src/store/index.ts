@@ -79,7 +79,7 @@ export const useQuizStore = create<QuizStore>()(
           set({ isLoadingQuestions: true });
           try {
             const questions = await QuestionService.getQuestionsByTopic(topic);
-            const shuffledQuestions = shuffleArray(questions).slice(0, 10); // Limit to 10 questions
+            const shuffledQuestions = shuffleArray(questions); // Use all available questions, no limit
             
             set({
               filteredQuestions: shuffledQuestions,

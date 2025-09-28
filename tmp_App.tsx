@@ -38,8 +38,7 @@ function App() {
   const [authPromptType, setAuthPromptType] = useState<'regular' | 'timed'>('regular');
   const [isGuestMode, setIsGuestMode] = useState(false);
   const navigationRef = useRef<HTMLDivElement>(null);
-  // Intro overlay
-  // Default to visible, but hide automatically for signed-in users (incl. on refresh)
+  // Always show intro on page load/reload
   const [showIntro, setShowIntro] = useState<boolean>(true);
   const [navSticky, setNavSticky] = useState<boolean>(false);
   // No localStorage check needed - intro shows every time
@@ -69,13 +68,6 @@ function App() {
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
-
-  // Hide intro automatically for authenticated users (including on refresh)
-  useEffect(() => {
-    if (!loading && user) {
-      setShowIntro(false);
-    }
-  }, [user, loading]);
 
   // Handle quiz start attempts
   const handleQuizStart = (type: 'regular' | 'timed') => {
@@ -284,13 +276,7 @@ function App() {
             </div>
           </div>
         ) : challengeResults ? (
-          <ChallengeResults
-            onTryAnother={() => {
-              resetChallenge();
-              setCurrentView('timed-challenge');
-              window.scrollTo({ top: 0, behavior: 'smooth' });
-            }}
-          />
+          <ChallengeResults />
         ) : currentView === 'quiz' ? (
           <QuizSetup isGuestMode={isGuestMode} />
         ) : currentView === 'timed-challenge' && user ? (

@@ -7,7 +7,11 @@ import { GuestScoreNotification } from './GuestScoreNotification';
 import CustomLoader from './CustomLoader';
 import './ChallengeResults.css';
 
-export const ChallengeResults: React.FC = () => {
+interface ChallengeResultsProps {
+  onTryAnother?: () => void;
+}
+
+export const ChallengeResults: React.FC<ChallengeResultsProps> = ({ onTryAnother }) => {
   const { results, resetChallenge } = useTimedChallengeStore();
   const [user] = useAuthState(auth);
   const [showGuestNotification, setShowGuestNotification] = useState(false);
@@ -197,7 +201,13 @@ export const ChallengeResults: React.FC = () => {
       <div className="results-actions">
         <button 
           className="action-btn primary"
-          onClick={() => window.location.reload()}
+          onClick={() => {
+            if (onTryAnother) {
+              onTryAnother();
+            } else {
+              resetChallenge();
+            }
+          }}
         >
           <span className="btn-icon">🔄</span>
           Try Another Challenge
