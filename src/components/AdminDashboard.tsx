@@ -26,6 +26,7 @@ import { Timestamp } from 'firebase/firestore';
 import { QuestionEditor } from './QuestionEditor';
 import { QuestionList } from './QuestionList';
 import { allQuestions } from '../data/questions';
+import { QuestionService } from '../services/questionService';
 import type { Question } from '../types';
 import { useNotifications } from '../hooks/useNotifications';
 import CustomLoader from './CustomLoader';
@@ -66,6 +67,7 @@ const AdminDashboard: React.FC = () => {
   const [showQuestionEditor, setShowQuestionEditor] = useState(false);
   const [editingQuestion, setEditingQuestion] = useState<Question | null>(null);
   const [showMigrationPrompt, setShowMigrationPrompt] = useState(false);
+  const [staticSyncLoading, setStaticSyncLoading] = useState(false);
 
   // Load admin data
   const loadAdminData = async () => {
@@ -192,6 +194,41 @@ const AdminDashboard: React.FC = () => {
       showNotification({ message: 'Failed to migrate questions', type: 'error' });
     } finally {
       setQuestionsLoading(false);
+    }
+  };
+
+  // Sync all static questions (adds only missing across all topics)
+  const handleSyncStaticQuestions = async () => {
+    if (!user) return;
+    try {
+      setStaticSyncLoading(true);
+      const key = (q: Pick<Question, 'question' | 'answer'>) => `${q.question}__${q.answer}`.toLowerCase();
+      const existingKeys = new Set(questions.map(q => key(q)));
+      const missing = allQuestions.filter(q => !existingKeys.has(key(q)));
+
+      if (missing.length === 0) {
+        showNotification({ message: 'All static questions are already synced.', type: 'success' });
+        return;
+      }
+
+      await bulkImportQuestions(missing.map(q => ({
+        question: q.question,
+        options: q.options,
+        answer: q.answer,
+        topic: q.topic,
+        explanation: q.explanation,
+      })), user.uid);
+
+      showNotification({ message: `Synced ${missing.length} static questions to Firestore`, type: 'success' });
+      await loadQuestions();
+      // Ensure quiz service uses latest Firestore data
+      QuestionService.enableFirebaseMode();
+      await QuestionService.refresh();
+    } catch (error) {
+      console.error('Error syncing static questions:', error);
+      showNotification({ message: 'Failed to sync static questions', type: 'error' });
+    } finally {
+      setStaticSyncLoading(false);
     }
   };
 
@@ -573,6 +610,38 @@ const AdminDashboard: React.FC = () => {
                 </div>
               </div>
             )}
+
+            {/* Static Questions Sync */}
+            {(() => {
+              const key = (q: Pick<Question, 'question' | 'answer'>) => `${q.question}__${q.answer}`.toLowerCase();
+              const existingKeys = new Set(questions.map(q => key(q)));
+              const curatedCount = allQuestions.length;
+              const missingCount = allQuestions.filter(q => !existingKeys.has(key(q))).length;
+              if (missingCount === 0) return null;
+              const inFirestore = curatedCount - missingCount;
+              return (
+                <div className="migration-prompt" style={{ marginTop: showMigrationPrompt ? 16 : 0 }}>
+                  <h3>Static Questions Sync</h3>
+                  <p>
+                    Static questions available: {curatedCount}. In Firestore: {inFirestore}. Missing: {missingCount}.
+                  </p>
+                  <div className="migration-actions">
+                    <button
+                      className="btn btn-primary"
+                      onClick={handleSyncStaticQuestions}
+                      disabled={staticSyncLoading || missingCount === 0}
+                    >
+                      {staticSyncLoading ? (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <CustomLoader size="small" text="" />
+                          Syncing...
+                        </div>
+                      ) : 'Sync Static Questions to Firestore'}
+                    </button>
+                  </div>
+                </div>
+              );
+            })()}
 
             {/* Questions Management Header */}
             <div className="questions-header">

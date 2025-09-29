@@ -61,13 +61,29 @@ function App() {
   };
 
   // Make the nav sticky to bottom after user scrolls a bit
-  // Only relevant when the tab bar is visible
+  // In light mode, disable sticky behavior entirely
   useEffect(() => {
     const onScroll = () => {
-      setNavSticky(window.scrollY > 200);
+      const theme = document.documentElement.getAttribute('data-theme') || document.body.getAttribute('data-theme') || 'light';
+      const isDark = theme === 'dark';
+      setNavSticky(isDark && window.scrollY > 200);
     };
     window.addEventListener('scroll', onScroll, { passive: true });
-    return () => window.removeEventListener('scroll', onScroll);
+    // Initialize based on current theme/scroll position
+    onScroll();
+
+    // Observe theme changes to immediately turn off sticky in light mode
+    const observer = new MutationObserver(() => {
+      const theme = document.documentElement.getAttribute('data-theme') || document.body.getAttribute('data-theme') || 'light';
+      if (theme !== 'dark') setNavSticky(false);
+    });
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+    observer.observe(document.body, { attributes: true, attributeFilter: ['data-theme'] });
+
+    return () => {
+      window.removeEventListener('scroll', onScroll);
+      observer.disconnect();
+    };
   }, []);
 
   // Hide intro automatically for authenticated users (including on refresh)
