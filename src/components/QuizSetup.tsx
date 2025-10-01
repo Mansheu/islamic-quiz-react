@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useQuizStore } from '../store';
 import CustomLoader from './CustomLoader';
 
+
+
 interface QuizSetupProps {
   isGuestMode?: boolean;
 }
@@ -33,6 +35,8 @@ const QuizSetup: React.FC<QuizSetupProps> = ({ isGuestMode = false }) => {
 
     loadTopics();
   }, [initializeQuestions, getAvailableTopics]);
+
+
 
   const handleStartQuiz = async () => {
     try {
@@ -93,6 +97,8 @@ const QuizSetup: React.FC<QuizSetupProps> = ({ isGuestMode = false }) => {
               </div>
             ) : 'Start Quiz'}
           </button>
+
+
         </div>
 
         <div className="quiz-info">

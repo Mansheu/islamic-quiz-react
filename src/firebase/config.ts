@@ -1,9 +1,6 @@
 // Import the functions you need from the SDKs you need
 import { initializeApp } from 'firebase/app';
 import { getAuth, GoogleAuthProvider } from 'firebase/auth';
-import { getFirestore } from 'firebase/firestore';
-import { getStorage } from 'firebase/storage';
-import { getAnalytics } from 'firebase/analytics';
 
 // Your web app's Firebase configuration
 // For Firebase JS SDK v9-compat and later, measurementId is optional
@@ -38,28 +35,35 @@ if (missingVars.length > 0) {
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 
-// Initialize Firebase Authentication and get a reference to the service
+// Export auth synchronously for compatibility with react-firebase-hooks
 export const auth = getAuth(app);
-
-// Initialize Cloud Firestore and get a reference to the service
-export const firestore = getFirestore(app);
-
-// Initialize Firebase Storage and get a reference to the service
-export const storage = getStorage(app);
-
-// Initialize Google Auth Provider
 export const googleProvider = new GoogleAuthProvider();
-googleProvider.setCustomParameters({
-  prompt: 'select_account',
-  // Add additional parameters to help with CORS
-  access_type: 'offline'
-});
-
-// Configure additional auth settings to help with popup issues
+googleProvider.setCustomParameters({ prompt: 'select_account', access_type: 'offline' });
 googleProvider.addScope('email');
 googleProvider.addScope('profile');
 
-// Initialize Analytics (optional)
-export const analytics = getAnalytics(app);
+// Compatibility getter (returns the already-initialized auth)
+export const getAuthInstance = async () => ({ auth, googleProvider });
+
+export const getFirestoreInstance = async () => {
+  const mod = await import('firebase/firestore');
+  return { firestore: mod.getFirestore(app), ...mod };
+};
+
+export const getStorageInstance = async () => {
+  const mod = await import('firebase/storage');
+  return { storage: mod.getStorage(app), ...mod };
+};
+
+// Lazy-load Analytics (optional)
+export const getAnalyticsInstance = async () => {
+  if (typeof window === 'undefined') return null;
+  try {
+    const { getAnalytics } = await import('firebase/analytics');
+    return getAnalytics(app);
+  } catch {
+    return null;
+  }
+};
 
 export default app;

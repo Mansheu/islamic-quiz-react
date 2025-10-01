@@ -30,6 +30,7 @@ import { QuestionService } from '../services/questionService';
 import type { Question } from '../types';
 import { useNotifications } from '../hooks/useNotifications';
 import CustomLoader from './CustomLoader';
+import ReportsManager from './ReportsManager';
 import './AdminDashboard.css';
 
 interface SystemHealth {
@@ -52,7 +53,7 @@ const AdminDashboard: React.FC = () => {
     completionRate: number;
   }>>([]);
   const [systemHealth, setSystemHealth] = useState<SystemHealth | null>(null);
-  const [activeTab, setActiveTab] = useState<'overview' | 'users' | 'quiz-stats' | 'questions' | 'system' | 'admin-actions'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'users' | 'quiz-stats' | 'questions' | 'system' | 'admin-actions' | 'reports'>('overview');
   const [error, setError] = useState<string | null>(null);
   
   // Questions management state
@@ -390,6 +391,12 @@ const AdminDashboard: React.FC = () => {
             onClick={() => setActiveTab('admin-actions')}
           >
             🔧 Admin Actions
+          </button>
+          <button 
+            className={`admin-tab ${activeTab === 'reports' ? 'active' : ''}`}
+            onClick={() => setActiveTab('reports')}
+          >
+            📊 Reports
           </button>
         </div>
 
@@ -825,6 +832,13 @@ const AdminDashboard: React.FC = () => {
                 </p>
               </div>
             </div>
+          </div>
+        )}
+
+        {/* Reports Tab */}
+        {activeTab === 'reports' && (
+          <div className="admin-content">
+            <ReportsManager />
           </div>
         )}
       </div>

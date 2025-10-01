@@ -1,11 +1,4 @@
-import { 
-  collection, 
-  query, 
-  orderBy, 
-  limit, 
-  getDocs
-} from 'firebase/firestore';
-import { firestore } from './config';
+import { getFirestoreInstance } from './config';
 
 // Interface for leaderboard entry
 export interface LeaderboardEntry {
@@ -29,9 +22,11 @@ export interface LeaderboardFilters {
 export const getTopPlayers = async (filters: LeaderboardFilters): Promise<LeaderboardEntry[]> => {
   try {
     console.log('📊 Fetching leaderboard with filters:', filters);
-    
+    const { firestore } = await getFirestoreInstance();
+    const { collection, query, orderBy, limit, getDocs } = await import('firebase/firestore');
+
     const usersRef = collection(firestore, 'users');
-    
+
     // For time-based filters, we'll fetch all users and filter in memory
     // This avoids complex Firestore indexing requirements
     const leaderboardQuery = query(
@@ -39,7 +34,7 @@ export const getTopPlayers = async (filters: LeaderboardFilters): Promise<Leader
       orderBy('totalScore', 'desc'),
       limit(100) // Fetch more to ensure we have enough after time filtering
     );
-    
+
     const querySnapshot = await getDocs(leaderboardQuery);
     console.log('🔍 [Firebase Debug] Raw query snapshot:', querySnapshot.size, 'documents');
     let players: LeaderboardEntry[] = [];
@@ -115,14 +110,16 @@ export const getTopPlayers = async (filters: LeaderboardFilters): Promise<Leader
 export const getTopicLeaderboard = async (topic: string, limitCount: number = 10): Promise<LeaderboardEntry[]> => {
   try {
     console.log('📊 Fetching topic leaderboard for:', topic);
-    
+    const { firestore } = await getFirestoreInstance();
+    const { collection, query, orderBy, limit, getDocs } = await import('firebase/firestore');
+
     const usersRef = collection(firestore, 'users');
     const topicQuery = query(
       usersRef,
       orderBy(`highScores.${topic}`, 'desc'),
       limit(limitCount)
     );
-    
+
     const querySnapshot = await getDocs(topicQuery);
     const players: LeaderboardEntry[] = [];
     
@@ -157,10 +154,12 @@ export const getTopicLeaderboard = async (topic: string, limitCount: number = 10
 // Get user's rank in overall leaderboard
 export const getUserRank = async (userId: string): Promise<number> => {
   try {
-    const usersRef = collection(firestore, 'users');
-    const allUsersQuery = query(usersRef, orderBy('totalScore', 'desc'));
-    
-    const querySnapshot = await getDocs(allUsersQuery);
+  const { collection, query, orderBy, getDocs } = await import('firebase/firestore');
+  const { firestore } = await getFirestoreInstance();
+  const usersRef = collection(firestore, 'users');
+  const allUsersQuery = query(usersRef, orderBy('totalScore', 'desc'));
+
+  const querySnapshot = await getDocs(allUsersQuery);
     const docs = querySnapshot.docs;
     let rank = 0;
     
@@ -181,8 +180,10 @@ export const getUserRank = async (userId: string): Promise<number> => {
 // Get quiz topics that have been played (for topic filter dropdown)
 export const getPlayedTopics = async (): Promise<string[]> => {
   try {
-    const usersRef = collection(firestore, 'users');
-    const querySnapshot = await getDocs(usersRef);
+  const { collection, getDocs } = await import('firebase/firestore');
+  const { firestore } = await getFirestoreInstance();
+  const usersRef = collection(firestore, 'users');
+  const querySnapshot = await getDocs(usersRef);
     
     const topicsSet = new Set<string>();
     

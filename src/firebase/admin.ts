@@ -1,17 +1,4 @@
-import { 
-  collection, 
-  query, 
-  getDocs, 
-  orderBy, 
-  limit,
-  doc,
-  updateDoc,
-  deleteDoc,
-  Timestamp,
-  writeBatch,
-  collectionGroup
-} from 'firebase/firestore';
-import { firestore } from './config';
+import { getFirestoreInstance } from './config';
 
 // Admin user check (you can customize this logic)
 const ADMIN_EMAILS = [
@@ -55,7 +42,8 @@ export interface AdminUser {
 export const getAdminAnalytics = async (): Promise<AdminAnalytics> => {
   try {
     console.log('📊 Fetching admin analytics...');
-    
+    const { firestore } = await getFirestoreInstance();
+    const { collection, getDocs } = await import('firebase/firestore');
     const usersRef = collection(firestore, 'users');
     const usersSnapshot = await getDocs(usersRef);
     
@@ -144,7 +132,8 @@ export const getAdminAnalytics = async (): Promise<AdminAnalytics> => {
 export const getAllUsers = async (): Promise<AdminUser[]> => {
   try {
     console.log('👥 Fetching all users for admin...');
-    
+    const { firestore } = await getFirestoreInstance();
+    const { collection, query, orderBy, getDocs } = await import('firebase/firestore');
     const usersRef = collection(firestore, 'users');
     const usersQuery = query(usersRef, orderBy('joinedAt', 'desc'));
     const usersSnapshot = await getDocs(usersQuery);
@@ -189,7 +178,8 @@ export const getQuizStatsByTopic = async (): Promise<Array<{
 }>> => {
   try {
     console.log('📈 Fetching quiz statistics by topic...');
-    
+    const { firestore } = await getFirestoreInstance();
+    const { collection, getDocs } = await import('firebase/firestore');
     const usersRef = collection(firestore, 'users');
     const usersSnapshot = await getDocs(usersRef);
     
@@ -257,7 +247,8 @@ export const adminUpdateUser = async (userId: string, updates: Partial<{
 }>) => {
   try {
     console.log('⚙️ Admin updating user:', userId, updates);
-    
+    const { firestore } = await getFirestoreInstance();
+    const { doc, updateDoc, Timestamp } = await import('firebase/firestore');
     const userDocRef = doc(firestore, 'users', userId);
     await updateDoc(userDocRef, {
       ...updates,
@@ -277,7 +268,8 @@ export const adminUpdateUser = async (userId: string, updates: Partial<{
 export const adminDeleteUser = async (userId: string) => {
   try {
     console.log('🗑️ Admin deleting user:', userId);
-    
+    const { firestore } = await getFirestoreInstance();
+    const { doc, deleteDoc } = await import('firebase/firestore');
     const userDocRef = doc(firestore, 'users', userId);
     await deleteDoc(userDocRef);
     
@@ -300,6 +292,8 @@ export const getSystemHealth = async (): Promise<{
     const startTime = Date.now();
     
     // Test database connection
+    const { firestore } = await getFirestoreInstance();
+    const { collection, query, limit, getDocs } = await import('firebase/firestore');
     const usersRef = collection(firestore, 'users');
     const testQuery = query(usersRef, limit(1));
     await getDocs(testQuery);
@@ -307,7 +301,7 @@ export const getSystemHealth = async (): Promise<{
     const responseTime = Date.now() - startTime;
     
     // Count total documents
-    const allUsersSnapshot = await getDocs(usersRef);
+  const allUsersSnapshot = await getDocs(usersRef);
     const totalDocuments = allUsersSnapshot.size;
     
     return {
@@ -340,13 +334,15 @@ export const resetAllUserScores = async (): Promise<{ success: boolean; message:
       'timedChallengeResults',
       'timedChallengeProfiles'
     ];
-    let totalDocuments = 0;
-    let batch = writeBatch(firestore);
+  let totalDocuments = 0;
+  const { firestore } = await getFirestoreInstance();
+  const { writeBatch, collection: collFn, getDocs: getDocsFn, collectionGroup } = await import('firebase/firestore');
+  let batch = writeBatch(firestore);
     let batchCount = 0;
     // Delete all documents in each collection
     for (const collectionName of collections) {
-      const collectionRef = collection(firestore, collectionName);
-      const snapshot = await getDocs(collectionRef);
+  const collectionRef = collFn(firestore, collectionName);
+  const snapshot = await getDocsFn(collectionRef);
       for (const doc of snapshot.docs) {
         batch.delete(doc.ref);
         totalDocuments++;
@@ -366,7 +362,7 @@ export const resetAllUserScores = async (): Promise<{ success: boolean; message:
     ];
     for (const groupName of groupCollections) {
       const groupQuery = collectionGroup(firestore, groupName);
-      const groupSnapshot = await getDocs(groupQuery);
+      const groupSnapshot = await getDocsFn(groupQuery);
       for (const doc of groupSnapshot.docs) {
         batch.delete(doc.ref);
         totalDocuments++;
@@ -397,6 +393,8 @@ export const resetAllUserScores = async (): Promise<{ success: boolean; message:
 // Admin function to reset scores for a specific user
 export const resetUserScores = async (userId: string): Promise<{ success: boolean; message: string }> => {
   try {
+    const { firestore } = await getFirestoreInstance();
+    const { writeBatch, collection: collFn, query: queryFn, getDocs: getDocsFn, doc: docFn } = await import('firebase/firestore');
     const batch = writeBatch(firestore);
     const collections = [
       'achievements',
@@ -412,10 +410,10 @@ export const resetUserScores = async (userId: string): Promise<{ success: boolea
     for (const collectionName of collections) {
       if (collectionName === 'timedChallengeResults') {
         // For timedChallengeResults, we need to query by userId field
-        const collectionRef = collection(firestore, collectionName);
-        const q = query(collectionRef);
-        const snapshot = await getDocs(q);
-        
+        const collectionRef = collFn(firestore, collectionName);
+        const q = queryFn(collectionRef);
+        const snapshot = await getDocsFn(q);
+
         snapshot.forEach((docSnap) => {
           const data = docSnap.data();
           if (data.userId === userId) {
@@ -425,14 +423,14 @@ export const resetUserScores = async (userId: string): Promise<{ success: boolea
         });
       } else {
         // For other collections, document ID is the userId
-        const docRef = doc(firestore, collectionName, userId);
+        const docRef = docFn(firestore, collectionName, userId);
         batch.delete(docRef);
         totalDocuments++;
       }
     }
     
     // Reset user stats but keep profile info
-    const userRef = doc(firestore, 'users', userId);
+    const userRef = docFn(firestore, 'users', userId);
     batch.update(userRef, {
       totalScore: 0,
       quizzesCompleted: 0,
@@ -464,14 +462,16 @@ export const resetUserScores = async (userId: string): Promise<{ success: boolea
 // Admin function to reset only timed challenge records for a specific user
 export const resetUserTimedChallenges = async (userId: string): Promise<{ success: boolean; message: string }> => {
   try {
+    const { firestore } = await getFirestoreInstance();
+    const { writeBatch, collection: collFn, query: queryFn, getDocs: getDocsFn, doc: docFn } = await import('firebase/firestore');
     const batch = writeBatch(firestore);
     let totalDocuments = 0;
-    
+
     // Reset timed challenge results
-    const timedResultsRef = collection(firestore, 'timedChallengeResults');
-    const resultsQuery = query(timedResultsRef);
-    const resultsSnapshot = await getDocs(resultsQuery);
-    
+    const timedResultsRef = collFn(firestore, 'timedChallengeResults');
+    const resultsQuery = queryFn(timedResultsRef);
+    const resultsSnapshot = await getDocsFn(resultsQuery);
+
     resultsSnapshot.forEach((docSnap) => {
       const data = docSnap.data();
       if (data.userId === userId) {
@@ -479,12 +479,12 @@ export const resetUserTimedChallenges = async (userId: string): Promise<{ succes
         totalDocuments++;
       }
     });
-    
+
     // Reset timed challenge profile
-    const profileRef = doc(firestore, 'timedChallengeProfiles', userId);
+    const profileRef = docFn(firestore, 'timedChallengeProfiles', userId);
     batch.delete(profileRef);
     totalDocuments++;
-    
+
     // Commit the batch
     await batch.commit();
     

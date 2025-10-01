@@ -1,0 +1,184 @@
+.report-button {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: inherit;
+  line-height: 1;
+  text-decoration: none;
+  vertical-align: middle;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  overflow: hidden;
+  color: var(--text-secondary, #666);
+  background: var(--card-bg, #fff);
+  border: 1px solid var(--border-color, #e0e0e0);
+}
+
+/* Size variants */
+.report-button--small {
+  padding: 0.25rem;
+  min-height: 2rem;
+  min-width: 2rem;
+}
+
+.report-button--medium {
+  padding: 0.5rem;
+  min-height: 2.5rem;
+  min-width: 2.5rem;
+}
+
+.report-button--large {
+  padding: 0.75rem;
+  min-height: 3rem;
+  min-width: 3rem;
+}
+
+/* Hover state */
+.report-button:hover:not(:disabled) {
+  color: var(--error-color, #f44336);
+  background: var(--error-light, #ffebee);
+  border-color: var(--error-color, #f44336);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(244, 67, 54, 0.15);
+}
+
+/* Focus state */
+.report-button:focus-visible {
+  outline: 2px solid var(--error-color, #f44336);
+  outline-offset: 2px;
+}
+
+/* Active state */
+.report-button:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: 0 1px 4px rgba(244, 67, 54, 0.2);
+}
+
+/* Disabled state */
+.report-button--disabled {
+  color: var(--text-disabled, #999);
+  background: var(--disabled-bg, #f5f5f5);
+  border-color: var(--border-color, #e0e0e0);
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.report-button--disabled:hover {
+  transform: none;
+  box-shadow: none;
+}
+
+/* Animation states */
+.report-button--animating .report-button__icon {
+  transform: scale(1.2);
+  animation: report-pulse 0.3s ease-out;
+}
+
+@keyframes report-pulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.2);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* Icon styling */
+.report-button__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s ease;
+  flex-shrink: 0;
+}
+
+.report-button__icon svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .report-button {
+    color: var(--text-secondary-dark, #aaa);
+    background: var(--card-bg-dark, #2d2d2d);
+    border-color: var(--border-color-dark, #404040);
+  }
+
+  .report-button:hover:not(:disabled) {
+    background: rgba(244, 67, 54, 0.1);
+  }
+
+  .report-button--disabled {
+    color: var(--text-disabled-dark, #666);
+    background: var(--disabled-bg-dark, #333);
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .report-button {
+    border-width: 2px;
+  }
+
+  .report-button:hover:not(:disabled) {
+    box-shadow: 0 0 0 2px currentColor;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .report-button,
+  .report-button__icon {
+    transition: none;
+    animation: none;
+  }
+
+  .report-button--animating .report-button__icon {
+    animation: none;
+    transform: none;
+  }
+}
+
+/* Mobile optimizations */
+@media (max-width: 768px) {
+  .report-button {
+    /* Larger touch targets on mobile */
+    min-height: 44px;
+    min-width: 44px;
+    padding: 0.75rem;
+  }
+
+  .report-button--small {
+    min-height: 40px;
+    min-width: 40px;
+    padding: 0.5rem;
+  }
+
+  .report-button--large {
+    min-height: 48px;
+    min-width: 48px;
+    padding: 1rem;
+  }
+
+  /* Slightly larger hover areas for better mobile UX */
+  .report-button::before {
+    content: '';
+    position: absolute;
+    top: -4px;
+    right: -4px;
+    bottom: -4px;
+    left: -4px;
+    z-index: -1;
+  }
+}

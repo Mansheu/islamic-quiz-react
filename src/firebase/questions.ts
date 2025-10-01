@@ -1,18 +1,6 @@
-import { 
-  collection, 
-  doc, 
-  getDocs, 
-  addDoc, 
-  updateDoc, 
-  deleteDoc, 
-  query, 
-  where, 
-  orderBy, 
-  writeBatch,
-  Timestamp 
-} from 'firebase/firestore';
-import { firestore } from './config';
+import { getFirestoreInstance } from './config';
 import type { Question } from '../types';
+import type { Timestamp } from 'firebase/firestore';
 
 export interface FirebaseQuestion extends Omit<Question, 'id'> {
   id?: string;
@@ -29,14 +17,16 @@ const QUESTIONS_COLLECTION = 'questions';
  */
 export const getAllQuestions = async (): Promise<Question[]> => {
   try {
+    const { firestore } = await getFirestoreInstance();
+    const { collection, query, where, orderBy, getDocs } = await import('firebase/firestore');
     const questionsRef = collection(firestore, QUESTIONS_COLLECTION);
     const q = query(
-      questionsRef, 
+      questionsRef,
       where('isActive', '==', true),
       orderBy('topic'),
       orderBy('createdAt')
     );
-    
+
     const querySnapshot = await getDocs(q);
     const questions: Question[] = [];
     
@@ -64,14 +54,16 @@ export const getAllQuestions = async (): Promise<Question[]> => {
  */
 export const getQuestionsByTopic = async (topic: string): Promise<Question[]> => {
   try {
+    const { firestore } = await getFirestoreInstance();
+    const { collection, query, where, orderBy, getDocs } = await import('firebase/firestore');
     const questionsRef = collection(firestore, QUESTIONS_COLLECTION);
     const q = query(
-      questionsRef, 
+      questionsRef,
       where('isActive', '==', true),
       where('topic', '==', topic),
       orderBy('createdAt')
     );
-    
+
     const querySnapshot = await getDocs(q);
     const questions: Question[] = [];
     
@@ -99,12 +91,14 @@ export const getQuestionsByTopic = async (topic: string): Promise<Question[]> =>
  */
 export const getAvailableTopics = async (): Promise<string[]> => {
   try {
+    const { firestore } = await getFirestoreInstance();
+    const { collection, query, where, getDocs } = await import('firebase/firestore');
     const questionsRef = collection(firestore, QUESTIONS_COLLECTION);
     const q = query(
-      questionsRef, 
+      questionsRef,
       where('isActive', '==', true)
     );
-    
+
     const querySnapshot = await getDocs(q);
     const topicsSet = new Set<string>();
     
@@ -128,6 +122,8 @@ export const addQuestion = async (
   userId: string
 ): Promise<string> => {
   try {
+    const { firestore } = await getFirestoreInstance();
+    const { collection, addDoc, Timestamp } = await import('firebase/firestore');
     const questionsRef = collection(firestore, QUESTIONS_COLLECTION);
     const now = Timestamp.now();
     
@@ -139,7 +135,7 @@ export const addQuestion = async (
       createdBy: userId
     };
     
-    const docRef = await addDoc(questionsRef, questionData);
+  const docRef = await addDoc(questionsRef, questionData as import('firebase/firestore').DocumentData);
     return docRef.id;
   } catch (error) {
     console.error('Error adding question:', error);
@@ -155,13 +151,15 @@ export const updateQuestion = async (
   updates: Partial<Omit<Question, 'id'>> & { isActive?: boolean }
 ): Promise<void> => {
   try {
+    const { firestore } = await getFirestoreInstance();
+    const { doc, updateDoc, Timestamp } = await import('firebase/firestore');
     const questionRef = doc(firestore, QUESTIONS_COLLECTION, questionId);
     const now = Timestamp.now();
-    
+
     await updateDoc(questionRef, {
       ...updates,
       updatedAt: now
-    });
+    } as import('firebase/firestore').DocumentData);
   } catch (error) {
     console.error('Error updating question:', error);
     throw new Error('Failed to update question');
@@ -173,13 +171,15 @@ export const updateQuestion = async (
  */
 export const deleteQuestion = async (questionId: string): Promise<void> => {
   try {
+    const { firestore } = await getFirestoreInstance();
+    const { doc, updateDoc, Timestamp } = await import('firebase/firestore');
     const questionRef = doc(firestore, QUESTIONS_COLLECTION, questionId);
     const now = Timestamp.now();
-    
+
     await updateDoc(questionRef, {
       isActive: false,
       updatedAt: now
-    });
+    } as import('firebase/firestore').DocumentData);
   } catch (error) {
     console.error('Error deleting question:', error);
     throw new Error('Failed to delete question');
@@ -191,6 +191,8 @@ export const deleteQuestion = async (questionId: string): Promise<void> => {
  */
 export const permanentlyDeleteQuestion = async (questionId: string): Promise<void> => {
   try {
+    const { firestore } = await getFirestoreInstance();
+    const { doc, deleteDoc } = await import('firebase/firestore');
     const questionRef = doc(firestore, QUESTIONS_COLLECTION, questionId);
     await deleteDoc(questionRef);
   } catch (error) {
@@ -207,6 +209,8 @@ export const bulkImportQuestions = async (
   userId: string
 ): Promise<void> => {
   try {
+    const { firestore } = await getFirestoreInstance();
+    const { writeBatch, collection, doc, Timestamp } = await import('firebase/firestore');
     const batch = writeBatch(firestore);
     const questionsRef = collection(firestore, QUESTIONS_COLLECTION);
     const now = Timestamp.now();
@@ -221,7 +225,7 @@ export const bulkImportQuestions = async (
         createdBy: userId
       };
       
-      batch.set(docRef, questionData);
+      batch.set(docRef, questionData as import('firebase/firestore').DocumentData);
     });
     
     await batch.commit();
@@ -241,6 +245,8 @@ export const getAllQuestionsForAdmin = async (): Promise<(Question & {
   createdBy: string 
 })[]> => {
   try {
+    const { firestore } = await getFirestoreInstance();
+    const { collection, query, orderBy, getDocs } = await import('firebase/firestore');
     const questionsRef = collection(firestore, QUESTIONS_COLLECTION);
     const q = query(questionsRef, orderBy('updatedAt', 'desc'));
     

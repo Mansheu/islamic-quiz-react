@@ -6,8 +6,14 @@ import { updateUserQuizResults, ensureUserProfile } from '../firebase/auth';
 import { updateUserProgress, updateDailyStreak } from '../firebase/achievements';
 import { GuestScoreNotification } from './GuestScoreNotification';
 import AchievementNotification from './AchievementNotification';
+import BookmarkButton from './BookmarkButton';
+import ReportButton from './ReportButton';
 import CustomLoader from './CustomLoader';
 import type { Achievement } from '../types/achievements';
+import { useNotifications } from '../hooks/useNotifications';
+import './QuizComponent.css';
+
+type ReportType = 'incorrect' | 'unclear' | 'typo' | 'other';
 
 const QuizComponent: React.FC = () => {
   const {
@@ -36,6 +42,14 @@ const QuizComponent: React.FC = () => {
   const [showGuestNotification, setShowGuestNotification] = useState(false);
   const [unlockedAchievements, setUnlockedAchievements] = useState<Achievement[]>([]);
   const [reviewFilter, setReviewFilter] = useState<'all' | 'incorrect' | 'correct'>('all');
+  const { showSuccess, showError, showInfo } = useNotifications();
+
+  // Bookmark/report state
+  const [bookmarkedKeys, setBookmarkedKeys] = useState<Set<string>>(new Set());
+  const [loadingBookmarks, setLoadingBookmarks] = useState<boolean>(false);
+  const [reportOpen, setReportOpen] = useState<boolean>(false);
+  const [reportType, setReportType] = useState<ReportType>('incorrect');
+  const [reportMessage, setReportMessage] = useState<string>('');
 
   const question = getCurrentQuestion();
   const isAnswered = currentQuestion in answeredQuestions;
@@ -50,6 +64,101 @@ const QuizComponent: React.FC = () => {
       setShowExplanation(false);
     }
   }, [currentQuestion, answeredQuestions, isAnswered]);
+
+  // Load user's bookmark keys once
+  useEffect(() => {
+    const load = async () => {
+      if (!user) { setBookmarkedKeys(new Set()); return; }
+      setLoadingBookmarks(true);
+      try {
+        const mod = await import('../firebase/bookmarks');
+        const docs = await mod.getBookmarks(user.uid);
+        setBookmarkedKeys(new Set(docs.map(d => d.key)));
+      } catch (e) {
+        console.error('Failed to load bookmarks', e);
+      } finally {
+        setLoadingBookmarks(false);
+      }
+    };
+    load();
+  }, [user]);
+
+  // Debug logging for "All Topics" quiz issues
+  React.useEffect(() => {
+    if (selectedTopic === 'All Topics' && question) {
+      console.log('All Topics Quiz - Question data:', {
+        hasQuestion: !!question,
+        hasQuestionText: !!question.question,
+        hasAnswer: !!question.answer,
+        hasTopic: !!question.topic,
+        hasOptions: !!question.options,
+        questionData: question
+      });
+    }
+  }, [question, selectedTopic]);
+
+  const currentKey = question && question.question && question.answer 
+    ? `${question.question}__${question.answer}`.toLowerCase() 
+    : '';
+  const isBookmarked = question && currentKey ? bookmarkedKeys.has(currentKey) : false;
+
+  const toggleBookmark = async () => {
+    if (!user) {
+      showInfo('🔐 Sign in to bookmark questions and build your personal review collection');
+      return;
+    }
+    
+    if (!question || !question.question || !question.answer) {
+      console.error('Invalid question data for bookmark:', question);
+      showError('❌ Cannot bookmark this question. Question data is incomplete.');
+      return;
+    }
+
+    try {
+      const bm = await import('../firebase/bookmarks');
+      if (isBookmarked) {
+        await bm.removeBookmark(user.uid, question);
+        setBookmarkedKeys(prev => { const s = new Set(prev); s.delete(currentKey); return s; });
+        showSuccess('📖 Removed from bookmarks');
+      } else {
+        await bm.addBookmark(user.uid, question);
+        setBookmarkedKeys(prev => new Set(prev).add(currentKey));
+        showSuccess('⭐ Saved to bookmarks! Review later from the Bookmarks tab.');
+      }
+    } catch (e) {
+      console.error('Bookmark toggle failed', e);
+      showError('❌ Could not update bookmark. Please try again.');
+    }
+  };
+
+  const submitReport = async () => {
+    if (!user) {
+      showInfo('🔐 Sign in to report questions and help improve our content');
+      return;
+    }
+    
+    if (!question || !question.question || !question.answer) {
+      console.error('Invalid question data for report:', question);
+      showError('❌ Cannot report this question. Question data is incomplete.');
+      return;
+    }
+    
+    // Description is completely optional - allow empty or any length
+    const trimmedMessage = reportMessage.trim();
+    console.log('Submitting report with message:', trimmedMessage || '(empty)');
+    
+    try {
+      const { submitQuestionReport } = await import('../firebase/reports');
+      await submitQuestionReport(user.uid, question, reportType, trimmedMessage || undefined);
+      setReportOpen(false);
+      setReportMessage('');
+      setReportType('incorrect');
+      showSuccess('🚩 Report submitted successfully! Our team will review it shortly.');
+    } catch (e) {
+      console.error('Report failed with error:', e);
+      showError('❌ Could not submit report. Please try again.');
+    }
+  };
 
   const handleAnswerSelect = (answer: string) => {
     if (isAnswered) return;
@@ -256,6 +365,21 @@ const QuizComponent: React.FC = () => {
           {question.question}
         </div>
 
+        {/* Quick actions */}
+        <div className="quiz-actions">
+          <BookmarkButton
+            isBookmarked={isBookmarked}
+            onToggle={toggleBookmark}
+            disabled={loadingBookmarks || !question || !question.question || !question.answer}
+            size="medium"
+          />
+          <ReportButton
+            onReport={() => setReportOpen(true)}
+            disabled={!question || !question.question || !question.answer}
+            size="medium"
+          />
+        </div>
+
         {/* Options */}
         <div className="options">
           {question.options.map((option, index) => {
@@ -333,6 +457,33 @@ const QuizComponent: React.FC = () => {
           }}
         />
       ))}
+
+      {/* Report Modal */}
+      {reportOpen && (
+        <div className="modal-backdrop" style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2000 }}>
+          <div className="card" style={{ maxWidth: 520, width: '90%' }}>
+            <h3>Report Question</h3>
+            <p style={{ fontSize: 14, color: 'var(--text-secondary)' }}>{question.question}</p>
+            <div style={{ marginTop: 8 }}>
+              <label htmlFor="rtype">Reason</label>
+              <select id="rtype" value={reportType} onChange={(e) => setReportType(e.target.value as ReportType)} style={{ width: '100%', marginTop: 6 }}>
+                <option value="incorrect">Incorrect answer/content</option>
+                <option value="unclear">Unclear wording</option>
+                <option value="typo">Spelling/typo</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+            <div style={{ marginTop: 8 }}>
+              <label htmlFor="rmsg">Details (optional)</label>
+              <textarea id="rmsg" value={reportMessage} onChange={(e) => setReportMessage(e.target.value)} rows={4} style={{ width: '100%', marginTop: 6 }} placeholder="Describe the issue briefly..." />
+            </div>
+            <div style={{ display: 'flex', gap: 8, marginTop: 12, justifyContent: 'flex-end' }}>
+              <button className="btn btn-secondary" onClick={() => setReportOpen(false)}>Cancel</button>
+              <button className="btn btn-primary" onClick={submitReport}>Submit</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

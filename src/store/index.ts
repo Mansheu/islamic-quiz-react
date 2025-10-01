@@ -25,6 +25,8 @@ interface QuizStore extends QuizState {
   startRetryIncorrect: () => void;
   startNewQuizSameTopic: () => Promise<void>;
   startRetryQuizSameSet: () => void;
+  // Bookmarks / Review deck
+  startReviewDeck: (userId: string) => Promise<void>;
   
   // Getters
   getCurrentQuestion: () => Question | null;
@@ -114,6 +116,55 @@ export const useQuizStore = create<QuizStore>()(
               isQuizCompleted: false,
               isGuestMode: isGuest,
               isPracticeMode: false,
+            });
+          } finally {
+            set({ isLoadingQuestions: false });
+          }
+        },
+
+        // Start a quiz from user's bookmarked questions
+        startReviewDeck: async (userId: string) => {
+          set({ isLoadingQuestions: true });
+          try {
+            // import the bookmarks module and questions separately to keep types clear
+            const bmModule = await import('../firebase/bookmarks');
+            const all = await QuestionService.getAllQuestions();
+
+            // Explicitly type the bookmark shape we expect
+            type BookmarkLike = { question: string; answer: string; key?: string };
+
+            const getBookmarks = bmModule.getBookmarks as (userId: string) => Promise<BookmarkLike[]>;
+            const makeQuestionKey = (bmModule.makeQuestionKey as (q: { question: string; answer: string }) => string) ||
+              ((q: { question: string; answer: string }) => `${q.question}__${q.answer}`.toLowerCase());
+
+            const bookmarks: BookmarkLike[] = await getBookmarks(userId);
+
+            const key = (q: { question: string; answer: string }) => `${q.question}__${q.answer}`.toLowerCase();
+            const wanted = new Set(bookmarks.map(b => (b.key ? b.key : makeQuestionKey({ question: b.question, answer: b.answer }))));
+            const deck = all.filter(q => wanted.has(key(q)));
+
+            set({
+              filteredQuestions: deck,
+              selectedTopic: 'Review Deck',
+              currentQuestion: 0,
+              answeredQuestions: {},
+              score: 0,
+              isQuizStarted: deck.length > 0,
+              isQuizCompleted: false,
+              isGuestMode: false,
+              isPracticeMode: true,
+            });
+          } catch (error) {
+            console.error('Error starting review deck:', error);
+            set({
+              filteredQuestions: [],
+              selectedTopic: 'Review Deck',
+              currentQuestion: 0,
+              answeredQuestions: {},
+              score: 0,
+              isQuizStarted: false,
+              isQuizCompleted: false,
+              isPracticeMode: true,
             });
           } finally {
             set({ isLoadingQuestions: false });

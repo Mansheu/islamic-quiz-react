@@ -1,18 +1,5 @@
-import { 
-  collection, 
-  doc, 
-  setDoc, 
-  getDoc, 
-  getDocs, 
-  query, 
-  orderBy, 
-  limit, 
-  where,
-  serverTimestamp,
-  Timestamp,
-  FieldValue
-} from 'firebase/firestore';
-import { firestore } from './config';
+import { getFirestoreInstance } from './config';
+import type { FieldValue, DocumentData, Timestamp } from 'firebase/firestore';
 import type { ChallengeResult } from '../types';
 
 // Interface for Firebase timed challenge data
@@ -41,8 +28,10 @@ export const saveTimedChallengeResult = async (
     console.log('💾 Saving timed challenge result to Firebase:', { userId, challengeId: result.challengeId, score: result.score });
     
     // Save individual result
-    const resultId = `${userId}_${result.challengeId}_${Date.now()}`;
-    const resultRef = doc(firestore, 'timedChallengeResults', resultId);
+    const { firestore } = await getFirestoreInstance();
+    const { doc, serverTimestamp, setDoc } = await import('firebase/firestore');
+  const resultId = `${userId}_${result.challengeId}_${Date.now()}`;
+  const resultRef = doc(firestore, 'timedChallengeResults', resultId);
     
     const firebaseResult: TimedChallengeFirebaseResult = {
       ...result,
@@ -51,7 +40,7 @@ export const saveTimedChallengeResult = async (
       isPersonalBest
     };
     
-    await setDoc(resultRef, firebaseResult);
+  await setDoc(resultRef, firebaseResult as DocumentData);
     
     // Update user's timed challenge profile
     await updateTimedChallengeProfile(userId, result, isPersonalBest);
@@ -71,13 +60,15 @@ export const updateTimedChallengeProfile = async (
   isNewPersonalBest: boolean
 ): Promise<void> => {
   try {
+    const { firestore } = await getFirestoreInstance();
+    const { doc, getDoc, serverTimestamp, setDoc } = await import('firebase/firestore');
     const profileRef = doc(firestore, 'timedChallengeProfiles', userId);
     const profileDoc = await getDoc(profileRef);
     
     let profile: TimedChallengeUserProfile;
     
     if (profileDoc.exists()) {
-      const existingProfile = profileDoc.data() as TimedChallengeUserProfile;
+  const existingProfile = profileDoc.data() as TimedChallengeUserProfile & import('firebase/firestore').DocumentData;
       profile = {
         ...existingProfile,
         totalTimedChallenges: existingProfile.totalTimedChallenges + 1,
@@ -109,7 +100,7 @@ export const updateTimedChallengeProfile = async (
       };
     }
     
-    await setDoc(profileRef, profile, { merge: true });
+  await setDoc(profileRef, profile as DocumentData, { merge: true });
     console.log('✅ Timed challenge profile updated');
     
   } catch (error) {
@@ -122,7 +113,8 @@ export const updateTimedChallengeProfile = async (
 export const getTimedChallengeProfile = async (userId: string): Promise<TimedChallengeUserProfile | null> => {
   try {
     console.log('📊 Fetching timed challenge profile for user:', userId);
-    
+    const { firestore } = await getFirestoreInstance();
+    const { doc, getDoc } = await import('firebase/firestore');
     const profileRef = doc(firestore, 'timedChallengeProfiles', userId);
     const profileDoc = await getDoc(profileRef);
     
@@ -131,16 +123,16 @@ export const getTimedChallengeProfile = async (userId: string): Promise<TimedCha
       return null;
     }
     
-    const profile = profileDoc.data() as TimedChallengeUserProfile;
+  const profile = profileDoc.data() as TimedChallengeUserProfile & import('firebase/firestore').DocumentData;
     
     // Convert Timestamp fields to Date objects for consistency
     const processedProfile = {
       ...profile,
-      lastChallengeDate: profile.lastChallengeDate instanceof Timestamp 
-        ? profile.lastChallengeDate.toDate() 
+      lastChallengeDate: profile.lastChallengeDate && typeof (profile.lastChallengeDate as import('firebase/firestore').DocumentData)?.toDate === 'function'
+        ? (profile.lastChallengeDate as import('firebase/firestore').DocumentData).toDate()
         : profile.lastChallengeDate,
-      updatedAt: profile.updatedAt instanceof Timestamp 
-        ? profile.updatedAt.toDate() 
+      updatedAt: profile.updatedAt && typeof (profile.updatedAt as import('firebase/firestore').DocumentData)?.toDate === 'function'
+        ? (profile.updatedAt as import('firebase/firestore').DocumentData).toDate()
         : profile.updatedAt,
       personalBests: Object.fromEntries(
         Object.entries(profile.personalBests || {}).map(([challengeId, best]) => [
@@ -167,6 +159,8 @@ export const getTimedChallengeLeaderboard = async (challengeId: string, limitCou
   try {
     console.log('🏆 Fetching timed challenge leaderboard for:', challengeId);
     
+    const { firestore } = await getFirestoreInstance();
+    const { collection, query, where, orderBy, limit, getDocs } = await import('firebase/firestore');
     const resultsRef = collection(firestore, 'timedChallengeResults');
     const leaderboardQuery = query(
       resultsRef,
@@ -176,14 +170,14 @@ export const getTimedChallengeLeaderboard = async (challengeId: string, limitCou
       limit(limitCount)
     );
     
-    const querySnapshot = await getDocs(leaderboardQuery);
+  const querySnapshot = await getDocs(leaderboardQuery);
     const results: TimedChallengeFirebaseResult[] = [];
     
     querySnapshot.docs.forEach(doc => {
-      const data = doc.data() as TimedChallengeFirebaseResult;
+      const data = doc.data() as TimedChallengeFirebaseResult & import('firebase/firestore').DocumentData;
       results.push({
         ...data,
-        completedAt: data.completedAt instanceof Timestamp ? data.completedAt.toDate() : data.completedAt
+        completedAt: data.completedAt && typeof (data.completedAt as import('firebase/firestore').DocumentData)?.toDate === 'function' ? (data.completedAt as import('firebase/firestore').DocumentData).toDate() : data.completedAt
       });
     });
     
@@ -199,6 +193,8 @@ export const getTimedChallengeLeaderboard = async (challengeId: string, limitCou
 // Get all timed challenge results for a user
 export const getUserTimedChallengeResults = async (userId: string): Promise<TimedChallengeFirebaseResult[]> => {
   try {
+    const { firestore } = await getFirestoreInstance();
+    const { collection, query, where, orderBy, getDocs } = await import('firebase/firestore');
     const resultsRef = collection(firestore, 'timedChallengeResults');
     const userResultsQuery = query(
       resultsRef,
@@ -206,14 +202,14 @@ export const getUserTimedChallengeResults = async (userId: string): Promise<Time
       orderBy('completedAt', 'desc')
     );
     
-    const querySnapshot = await getDocs(userResultsQuery);
+  const querySnapshot = await getDocs(userResultsQuery);
     const results: TimedChallengeFirebaseResult[] = [];
     
     querySnapshot.docs.forEach(doc => {
-      const data = doc.data() as TimedChallengeFirebaseResult;
+      const data = doc.data() as TimedChallengeFirebaseResult & import('firebase/firestore').DocumentData;
       results.push({
         ...data,
-        completedAt: data.completedAt instanceof Timestamp ? data.completedAt.toDate() : data.completedAt
+        completedAt: data.completedAt && typeof (data.completedAt as import('firebase/firestore').DocumentData)?.toDate === 'function' ? (data.completedAt as import('firebase/firestore').DocumentData).toDate() : data.completedAt
       });
     });
     

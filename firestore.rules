@@ -23,6 +23,11 @@ service cloud.firestore {
       allow write: if (request.auth != null && request.auth.uid == userId) || isAdmin();
     }
 
+    // User bookmarks: user can manage own
+    match /users/{userId}/bookmarks/{bookmarkId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+
     // Achievements: user can read/write own, admin can read/write all
     match /achievements/{userId} {
       allow read, write: if (request.auth != null && request.auth.uid == userId) || isAdmin();
@@ -61,6 +66,12 @@ service cloud.firestore {
       // Keep profiles private except to owner/admin
       allow read: if (request.auth != null && request.auth.uid == userId) || isAdmin();
       allow write: if (request.auth != null && request.auth.uid == userId && request.resource.data.userId == userId) || isAdmin();
+    }
+
+    // Question Reports: users can create, admins can manage
+    match /questionReports/{reportId} {
+      allow create: if request.auth != null;
+      allow read, update, delete: if isAdmin();
     }
 
     // Admins registry

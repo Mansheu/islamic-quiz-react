@@ -1,0 +1,36 @@
+/* Quiz Actions Container */
+.quiz-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  align-items: center;
+  justify-content: flex-start;
+  flex-wrap: wrap;
+}
+
+/* Ensure consistent sizing between bookmark and report buttons */
+.quiz-actions .bookmark-button,
+.quiz-actions .report-button {
+  flex-shrink: 0;
+}
+
+/* Mobile responsive adjustments */
+@media (max-width: 768px) {
+  .quiz-actions {
+    gap: 0.75rem;
+    margin-bottom: 1.25rem;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .quiz-actions .bookmark-button,
+  .quiz-actions .report-button {
+    border-width: 2px;
+  }
+}
+
+/* Ensure proper spacing and alignment */
+.quiz-actions > * {
+  margin: 0;
+}

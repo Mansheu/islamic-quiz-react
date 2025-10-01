@@ -1,17 +1,6 @@
-import { 
-  signInWithEmailAndPassword,
-  createUserWithEmailAndPassword,
-  signInWithPopup,
-  signOut,
-  updateProfile,
-  updatePassword,
-  sendPasswordResetEmail,
-  type User,
-  type UserCredential
-} from 'firebase/auth';
-import { doc, setDoc, getDoc, updateDoc } from 'firebase/firestore';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { auth, firestore, googleProvider, storage } from './config';
+import type { User, UserCredential } from 'firebase/auth';
+import type { DocumentData } from 'firebase/firestore';
+import { getAuthInstance, getFirestoreInstance, getStorageInstance } from './config';
 import { getCustomErrorMessage } from '../utils/errorMessages';
 
 // Helper function to handle Firebase errors gracefully
@@ -58,8 +47,10 @@ interface UserProfile {
 // Sign up with email and password
 export const signUpWithEmail = async (email: string, password: string, displayName: string): Promise<User> => {
   try {
-    const userCredential: UserCredential = await createUserWithEmailAndPassword(auth, email, password);
-    const user = userCredential.user;
+    const { auth } = await getAuthInstance();
+    const { createUserWithEmailAndPassword } = await import('firebase/auth');
+    const userCredential: UserCredential = await createUserWithEmailAndPassword(auth, email, password as string);
+    const user = userCredential.user as User;
     
     // Create user profile in Firestore
     await createUserProfile(user, { displayName });
@@ -73,8 +64,10 @@ export const signUpWithEmail = async (email: string, password: string, displayNa
 // Sign in with email and password
 export const signInWithEmail = async (email: string, password: string): Promise<User> => {
   try {
-    const userCredential: UserCredential = await signInWithEmailAndPassword(auth, email, password);
-    return userCredential.user;
+    const { auth } = await getAuthInstance();
+    const { signInWithEmailAndPassword } = await import('firebase/auth');
+    const userCredential: UserCredential = await signInWithEmailAndPassword(auth, email, password as string);
+    return userCredential.user as User;
   } catch (error) {
     return handleFirebaseError(error, 'Email sign in');
   }
@@ -83,11 +76,15 @@ export const signInWithEmail = async (email: string, password: string): Promise<
 // Sign in with Google
 export const signInWithGoogle = async (): Promise<User> => {
   try {
+    const { auth, googleProvider } = await getAuthInstance();
+    const { signInWithPopup } = await import('firebase/auth');
     const userCredential: UserCredential = await signInWithPopup(auth, googleProvider);
-    const user = userCredential.user;
+    const user = userCredential.user as User;
     
     // Check if user profile exists, if not create one
-    const userDoc = await getDoc(doc(firestore, 'users', user.uid));
+  const { firestore } = await getFirestoreInstance();
+  const { doc, getDoc } = await import('firebase/firestore');
+  const userDoc = await getDoc(doc(firestore, 'users', user.uid));
     if (!userDoc.exists()) {
       await createUserProfile(user);
     }
@@ -110,6 +107,8 @@ export const signInWithGoogle = async (): Promise<User> => {
 // Sign out
 export const logOut = async (): Promise<void> => {
   try {
+    const { auth } = await getAuthInstance();
+    const { signOut } = await import('firebase/auth');
     await signOut(auth);
   } catch (error) {
     handleFirebaseError(error, 'Sign out');
@@ -129,8 +128,10 @@ export const createUserProfile = async (
   console.log('🔄 Creating user profile for:', user.email);
   
   try {
-    const userDocRef = doc(firestore, 'users', user.uid);
-    const userSnapshot = await getDoc(userDocRef);
+  const { firestore } = await getFirestoreInstance();
+  const { doc, getDoc, setDoc } = await import('firebase/firestore');
+  const userDocRef = doc(firestore, 'users', user.uid);
+  const userSnapshot = await getDoc(userDocRef);
     
     if (!userSnapshot.exists()) {
       const { displayName, email, photoURL } = user;
@@ -148,7 +149,7 @@ export const createUserProfile = async (
       };
       
       console.log('📝 Setting user document:', userProfile);
-      await setDoc(userDocRef, userProfile);
+  await setDoc(userDocRef, userProfile);
       console.log('✅ User profile created successfully');
     } else {
       console.log('ℹ️ User profile already exists');
@@ -166,8 +167,10 @@ export const updateUserQuizResults = async (
 ): Promise<void> => {
   try {
     console.log('🔄 Updating quiz results for user:', userId);
-    const userDocRef = doc(firestore, 'users', userId);
-    const userDoc = await getDoc(userDocRef);
+  const { firestore } = await getFirestoreInstance();
+  const { doc, getDoc, setDoc } = await import('firebase/firestore');
+  const userDocRef = doc(firestore, 'users', userId);
+  const userDoc = await getDoc(userDocRef);
     
     if (userDoc.exists()) {
       const userData = userDoc.data() as UserProfile;
@@ -192,7 +195,7 @@ export const updateUserQuizResults = async (
         newTotalScore: updatedData.totalScore
       });
       
-      await setDoc(userDocRef, updatedData);
+  await setDoc(userDocRef, updatedData as DocumentData);
       console.log('✅ Quiz results updated successfully!');
     } else {
       console.log('❌ User document does not exist. Creating it first...');
@@ -208,7 +211,7 @@ export const updateUserQuizResults = async (
         lastPlayed: new Date()
       };
       
-      await setDoc(userDocRef, basicProfile);
+  await setDoc(userDocRef, basicProfile as DocumentData);
       console.log('✅ Created user profile and saved quiz results!');
     }
   } catch (error) {
@@ -232,8 +235,10 @@ export const updateUserTimedChallengeResults = async (
 ): Promise<void> => {
   try {
     console.log('🔄 Updating timed challenge results for user:', userId);
-    const userDocRef = doc(firestore, 'users', userId);
-    const userDoc = await getDoc(userDocRef);
+  const { firestore } = await getFirestoreInstance();
+  const { doc, getDoc, setDoc } = await import('firebase/firestore');
+  const userDocRef = doc(firestore, 'users', userId);
+  const userDoc = await getDoc(userDocRef);
     
     if (userDoc.exists()) {
       const userData = userDoc.data() as UserProfile;
@@ -263,7 +268,7 @@ export const updateUserTimedChallengeResults = async (
         newTotalScore: updatedData.totalScore
       });
       
-      await setDoc(userDocRef, updatedData);
+  await setDoc(userDocRef, updatedData as DocumentData);
       console.log('✅ Timed challenge results updated successfully!');
     } else {
       console.log('❌ User document does not exist for timed challenge. Creating it first...');
@@ -285,7 +290,7 @@ export const updateUserTimedChallengeResults = async (
         lastPlayed: new Date()
       };
       
-      await setDoc(userDocRef, basicProfile);
+  await setDoc(userDocRef, basicProfile as DocumentData);
       console.log('✅ Created user profile and saved timed challenge results!');
     }
   } catch (error) {
@@ -296,6 +301,8 @@ export const updateUserTimedChallengeResults = async (
 // Get user profile
 export const getUserProfile = async (userId: string): Promise<UserProfile | null> => {
   try {
+    const { firestore } = await getFirestoreInstance();
+    const { doc, getDoc } = await import('firebase/firestore');
     const userDocRef = doc(firestore, 'users', userId);
     const userDoc = await getDoc(userDocRef);
     
@@ -313,6 +320,8 @@ export const getUserProfile = async (userId: string): Promise<UserProfile | null
 // Ensure user profile exists - creates one if missing
 export const ensureUserProfile = async (user: User): Promise<void> => {
   try {
+    const { firestore } = await getFirestoreInstance();
+    const { doc, getDoc } = await import('firebase/firestore');
     const userDocRef = doc(firestore, 'users', user.uid);
     const userDoc = await getDoc(userDocRef);
     
@@ -339,6 +348,7 @@ export const updateUserProfile = async (
     
     // Update Firebase Auth profile
     if (updates.displayName !== undefined || updates.photoURL !== undefined) {
+      const { updateProfile } = await import('firebase/auth');
       await updateProfile(user, {
         ...(updates.displayName !== undefined && { displayName: updates.displayName }),
         ...(updates.photoURL !== undefined && { photoURL: updates.photoURL })
@@ -346,14 +356,16 @@ export const updateUserProfile = async (
     }
 
     // Update Firestore document
-    const userDocRef = doc(firestore, 'users', user.uid);
-    const updateData: Partial<UserProfile> = {};
+  const { firestore } = await getFirestoreInstance();
+  const { doc, updateDoc } = await import('firebase/firestore');
+  const userDocRef = doc(firestore, 'users', user.uid);
+  const updateData: Partial<UserProfile> = {};
     
     if (updates.displayName !== undefined) updateData.displayName = updates.displayName;
     if (updates.photoURL !== undefined) updateData.photoURL = updates.photoURL;
     if (updates.location !== undefined) updateData.location = updates.location;
 
-    await updateDoc(userDocRef, updateData);
+  await updateDoc(userDocRef, updateData as DocumentData);
     console.log('✅ User profile updated successfully');
   } catch (error) {
     handleFirebaseError(error, 'Updating user profile');
@@ -373,7 +385,9 @@ export const uploadProfilePicture = async (
     if (!useBase64Fallback) {
       const fileExtension = file.type.split('/')[1] || 'jpg';
       const fileName = `${user.uid}_${Date.now()}.${fileExtension}`;
-      const storageRef = ref(storage, `profile-pictures/${fileName}`);
+    const { storage } = await getStorageInstance();
+    const { ref, uploadBytes, getDownloadURL } = await import('firebase/storage');
+    const storageRef = ref(storage, `profile-pictures/${fileName}`);
       
       // Set metadata for the file
       const metadata = {
@@ -481,7 +495,8 @@ export const changeUserPassword = async (
 ): Promise<void> => {
   try {
     console.log('🔄 Changing user password');
-    await updatePassword(user, newPassword);
+    const { updatePassword } = await import('firebase/auth');
+    await updatePassword(user, newPassword as string);
     console.log('✅ Password changed successfully');
   } catch (error) {
     handleFirebaseError(error, 'Changing password');
@@ -492,7 +507,9 @@ export const changeUserPassword = async (
 export const sendPasswordReset = async (email: string): Promise<void> => {
   try {
     console.log('🔄 Sending password reset email to:', email);
-    await sendPasswordResetEmail(auth, email);
+    const { auth } = await getAuthInstance();
+    const { sendPasswordResetEmail } = await import('firebase/auth');
+    await sendPasswordResetEmail(auth, email as string);
     console.log('✅ Password reset email sent');
   } catch (error) {
     handleFirebaseError(error, 'Sending password reset email');

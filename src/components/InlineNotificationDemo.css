@@ -1,0 +1,342 @@
+/* Inline Notification Demo Component */
+.inline-notification-demo {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+  font-family: inherit;
+}
+
+.demo-header {
+  text-align: center;
+  margin-bottom: 2.5rem;
+}
+
+.demo-header h2 {
+  color: var(--primary-color, #1976d2);
+  margin-bottom: 1rem;
+  font-size: 2rem;
+}
+
+.demo-header p {
+  color: var(--text-secondary, #666);
+  font-size: 1.1rem;
+  line-height: 1.6;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+/* Demo Controls */
+.demo-controls {
+  background: var(--surface-color, #f8f9fa);
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  border: 1px solid var(--border-color, #e0e0e0);
+}
+
+.demo-controls h3 {
+  margin-top: 0;
+  margin-bottom: 1rem;
+  color: var(--text-primary, #333);
+}
+
+.button-group {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.demo-btn {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-height: 44px; /* Touch target */
+}
+
+.demo-btn--success {
+  background-color: var(--success-color, #22c55e);
+  color: white;
+}
+
+.demo-btn--success:hover {
+  background-color: var(--success-hover, #16a34a);
+  transform: translateY(-1px);
+}
+
+.demo-btn--error {
+  background-color: var(--error-color, #ef4444);
+  color: white;
+}
+
+.demo-btn--error:hover {
+  background-color: var(--error-hover, #dc2626);
+  transform: translateY(-1px);
+}
+
+/* Notification Examples */
+.demo-notifications {
+  margin-bottom: 2.5rem;
+}
+
+.demo-notifications > h3 {
+  color: var(--text-primary, #333);
+  margin-bottom: 1.5rem;
+  font-size: 1.5rem;
+}
+
+.notification-example {
+  background: var(--surface-color, #fff);
+  border: 1px solid var(--border-color, #e0e0e0);
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.notification-example h4 {
+  margin-top: 0;
+  margin-bottom: 1rem;
+  color: var(--text-primary, #333);
+  font-size: 1.1rem;
+}
+
+/* Notification Actions */
+.notification-actions {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.action-btn {
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 1px solid;
+  min-height: 36px;
+}
+
+.action-btn--primary {
+  background-color: var(--primary-color, #1976d2);
+  color: white;
+  border-color: var(--primary-color, #1976d2);
+}
+
+.action-btn--primary:hover {
+  background-color: var(--primary-hover, #1565c0);
+}
+
+.action-btn--secondary {
+  background-color: transparent;
+  color: var(--text-secondary, #666);
+  border-color: var(--border-color, #ddd);
+}
+
+.action-btn--secondary:hover {
+  background-color: var(--hover-bg, #f5f5f5);
+}
+
+/* Features Section */
+.demo-features {
+  background: var(--surface-color, #f8f9fa);
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  border: 1px solid var(--border-color, #e0e0e0);
+}
+
+.demo-features h3 {
+  margin-top: 0;
+  margin-bottom: 1rem;
+  color: var(--text-primary, #333);
+}
+
+.demo-features ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.demo-features li {
+  padding: 0.5rem 0;
+  color: var(--text-primary, #333);
+  line-height: 1.5;
+}
+
+.demo-features li strong {
+  color: var(--primary-color, #1976d2);
+}
+
+/* Usage Section */
+.demo-usage {
+  margin-top: 2rem;
+}
+
+.demo-usage h3 {
+  color: var(--text-primary, #333);
+  margin-bottom: 1.5rem;
+  font-size: 1.5rem;
+}
+
+.usage-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+}
+
+.usage-card {
+  background: var(--surface-color, #fff);
+  border: 1px solid var(--border-color, #e0e0e0);
+  border-radius: 8px;
+  padding: 1.25rem;
+  transition: box-shadow 0.2s ease;
+}
+
+.usage-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.usage-card h4 {
+  margin-top: 0;
+  margin-bottom: 0.75rem;
+  color: var(--primary-color, #1976d2);
+  font-size: 1.1rem;
+}
+
+.usage-card p {
+  margin: 0;
+  color: var(--text-secondary, #666);
+  line-height: 1.5;
+}
+
+/* Dark Mode */
+@media (prefers-color-scheme: dark) {
+  .demo-header p {
+    color: var(--text-secondary-dark, #aaa);
+  }
+
+  .demo-controls {
+    background: var(--surface-dark, #2a2a2a);
+    border-color: var(--border-dark, #444);
+  }
+
+  .demo-controls h3 {
+    color: var(--text-primary-dark, #fff);
+  }
+
+  .notification-example {
+    background: var(--surface-dark, #2a2a2a);
+    border-color: var(--border-dark, #444);
+  }
+
+  .notification-example h4 {
+    color: var(--text-primary-dark, #fff);
+  }
+
+  .demo-features {
+    background: var(--surface-dark, #2a2a2a);
+    border-color: var(--border-dark, #444);
+  }
+
+  .demo-features h3 {
+    color: var(--text-primary-dark, #fff);
+  }
+
+  .demo-features li {
+    color: var(--text-primary-dark, #fff);
+  }
+
+  .demo-usage h3,
+  .demo-notifications > h3 {
+    color: var(--text-primary-dark, #fff);
+  }
+
+  .usage-card {
+    background: var(--surface-dark, #2a2a2a);
+    border-color: var(--border-dark, #444);
+  }
+
+  .usage-card h4 {
+    color: var(--primary-color-dark, #64b5f6);
+  }
+
+  .usage-card p {
+    color: var(--text-secondary-dark, #aaa);
+  }
+
+  .action-btn--secondary {
+    color: var(--text-secondary-dark, #aaa);
+    border-color: var(--border-dark, #666);
+  }
+
+  .action-btn--secondary:hover {
+    background-color: var(--hover-bg-dark, #333);
+  }
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+  .inline-notification-demo {
+    padding: 1rem;
+  }
+
+  .demo-header h2 {
+    font-size: 1.75rem;
+  }
+
+  .demo-header p {
+    font-size: 1rem;
+  }
+
+  .demo-controls,
+  .notification-example,
+  .demo-features {
+    padding: 1rem;
+  }
+
+  .button-group {
+    flex-direction: column;
+  }
+
+  .demo-btn {
+    width: 100%;
+  }
+
+  .notification-actions {
+    flex-direction: column;
+  }
+
+  .action-btn {
+    width: 100%;
+  }
+
+  .usage-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .demo-features ul {
+    font-size: 0.9rem;
+  }
+}
+
+/* Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+  .demo-btn {
+    transition: none;
+  }
+
+  .demo-btn:hover {
+    transform: none;
+  }
+
+  .action-btn,
+  .usage-card {
+    transition: none;
+  }
+}

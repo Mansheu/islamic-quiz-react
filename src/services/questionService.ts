@@ -3,6 +3,49 @@ import { getAllQuestions, getQuestionsByTopic as getFirebaseQuestionsByTopic, ge
 import { getQuestionsByTopic as getStaticQuestionsByTopic, getUniqueTopics } from '../data/questions';
 
 /**
+ * Validate that a question has all required properties
+ */
+function validateQuestion(question: unknown): question is Question {
+  return question != null &&
+    typeof question === 'object' &&
+    'question' in question &&
+    typeof question.question === 'string' &&
+    question.question.trim() !== '' &&
+    'answer' in question &&
+    typeof question.answer === 'string' &&
+    question.answer.trim() !== '' &&
+    'topic' in question &&
+    typeof question.topic === 'string' &&
+    question.topic.trim() !== '' &&
+    'options' in question &&
+    Array.isArray(question.options) &&
+    question.options.length > 0 &&
+    question.options.every((opt: unknown) => typeof opt === 'string' && opt.trim() !== '');
+}
+
+/**
+ * Filter out invalid questions and log them
+ */
+function filterValidQuestions(questions: unknown[], source: string): Question[] {
+  const valid: Question[] = [];
+  const invalid: unknown[] = [];
+  
+  for (const q of questions) {
+    if (validateQuestion(q)) {
+      valid.push(q);
+    } else {
+      invalid.push(q);
+    }
+  }
+  
+  if (invalid.length > 0) {
+    console.warn(`Found ${invalid.length} invalid questions from ${source}:`, invalid);
+  }
+  
+  return valid;
+}
+
+/**
  * Question service that handles both static and Firebase question loading
  */
 export class QuestionService {
@@ -72,9 +115,12 @@ export class QuestionService {
           extras = [];
         }
 
-        // Merge + de-duplicate by question text + answer
+        // Validate and merge + de-duplicate by question text + answer
+        const allQuestionsToMerge = [...questions, ...extras];
+        const validQuestions = filterValidQuestions(allQuestionsToMerge, 'Firebase + Static');
+        
         const mergedMap = new Map<string, Question>();
-        for (const q of [...questions, ...extras]) {
+        for (const q of validQuestions) {
           const key = `${q.question}__${q.answer}`.toLowerCase();
           if (!mergedMap.has(key)) mergedMap.set(key, q);
         }
@@ -128,20 +174,23 @@ export class QuestionService {
           // Fallback to static dataset if still empty
           combined = getStaticQuestionsByTopic(topic);
         }
-        // De-duplicate
+        // Validate and de-duplicate
+        const validCombined = filterValidQuestions(combined, `Topic: ${topic}`);
         const map = new Map<string, Question>();
-        for (const q of combined) {
+        for (const q of validCombined) {
           const key = `${q.question}__${q.answer}`.toLowerCase();
           if (!map.has(key)) map.set(key, q);
         }
         return Array.from(map.values());
       } else {
-        return getStaticQuestionsByTopic(topic);
+        const staticQuestions = getStaticQuestionsByTopic(topic);
+        return filterValidQuestions(staticQuestions, `Static: ${topic}`);
       }
     } catch (error) {
       console.error('Error loading questions by topic, falling back to static:', error);
       // Fallback to static questions
-      return getStaticQuestionsByTopic(topic);
+      const fallbackQuestions = getStaticQuestionsByTopic(topic);
+      return filterValidQuestions(fallbackQuestions, `Fallback: ${topic}`);
     }
   }
 

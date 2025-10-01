@@ -1,14 +1,5 @@
-import { 
-  doc, 
-  getDoc, 
-  setDoc, 
-  updateDoc, 
-  onSnapshot,
-  Timestamp,
-  writeBatch
-} from 'firebase/firestore';
-import { firestore } from './config';
-import type { 
+import { getFirestoreInstance } from './config';
+import type {
   Achievement, 
   UserAchievements, 
   DailyStreak,
@@ -39,10 +30,12 @@ export const initializeUserAchievements = async (userId: string): Promise<UserAc
     updatedAt: new Date()
   };
 
+  const { firestore } = await getFirestoreInstance();
+  const { doc, setDoc, Timestamp } = await import('firebase/firestore');
   await setDoc(doc(firestore, ACHIEVEMENTS_COLLECTION, userId), {
     ...userAchievements,
     updatedAt: Timestamp.fromDate(userAchievements.updatedAt)
-  });
+  } as import('firebase/firestore').DocumentData);
 
   return userAchievements;
 };
@@ -50,6 +43,9 @@ export const initializeUserAchievements = async (userId: string): Promise<UserAc
 // Get user achievements
 export const getUserAchievements = async (userId: string): Promise<UserAchievements | null> => {
   try {
+    const { firestore } = await getFirestoreInstance();
+    const { doc, getDoc } = await import('firebase/firestore');
+
     const docRef = doc(firestore, ACHIEVEMENTS_COLLECTION, userId);
     const docSnap = await getDoc(docRef);
     
@@ -57,19 +53,19 @@ export const getUserAchievements = async (userId: string): Promise<UserAchieveme
       const data = docSnap.data();
       
       // Convert Firestore data to UserAchievements with proper date conversions
-      const achievements: Achievement[] = data.achievements.map((achievement: Achievement & { unlockedAt?: Timestamp | Date }) => ({
-        ...achievement,
-        unlockedAt: achievement.unlockedAt && typeof achievement.unlockedAt === 'object' && 'toDate' in achievement.unlockedAt
-          ? (achievement.unlockedAt as Timestamp).toDate() 
-          : achievement.unlockedAt as Date
+      const achievements: Achievement[] = (data.achievements || []).map((achievement: import('firebase/firestore').DocumentData) => ({
+        ...(achievement as Achievement),
+        unlockedAt: achievement.unlockedAt && typeof (achievement.unlockedAt as import('firebase/firestore').DocumentData)?.toDate === 'function'
+          ? (achievement.unlockedAt as import('firebase/firestore').DocumentData).toDate()
+          : achievement.unlockedAt
       }));
       
-      return {
-        ...data,
-        achievements,
-        updatedAt: data.updatedAt?.toDate() || new Date(),
-        lastQuizDate: data.lastQuizDate?.toDate()
-      } as UserAchievements;
+        return {
+          ...data,
+          achievements,
+          updatedAt: data.updatedAt && typeof (data.updatedAt as import('firebase/firestore').DocumentData)?.toDate === 'function' ? (data.updatedAt as import('firebase/firestore').DocumentData).toDate() : data.updatedAt || new Date(),
+          lastQuizDate: data.lastQuizDate && typeof (data.lastQuizDate as import('firebase/firestore').DocumentData)?.toDate === 'function' ? (data.lastQuizDate as import('firebase/firestore').DocumentData).toDate() : data.lastQuizDate
+        } as UserAchievements;
     } else {
       // Do not auto-initialize here; let callers decide when to create.
       return null;
@@ -98,6 +94,10 @@ export const updateUserProgress = async (
   }
 
   const newlyUnlocked: Achievement[] = [];
+
+  // Ensure firestore helpers are available before using them
+  const { firestore } = await getFirestoreInstance();
+  const { doc, Timestamp, writeBatch } = await import('firebase/firestore');
   const batch = writeBatch(firestore);
 
   // Update basic stats
@@ -215,14 +215,14 @@ export const updateUserProgress = async (
   userAchievements.updatedAt = new Date();
 
   // Save to Firebase
-  const docRef = doc(firestore, ACHIEVEMENTS_COLLECTION, userId);
-  batch.set(docRef, {
-    ...userAchievements,
-    updatedAt: Timestamp.fromDate(userAchievements.updatedAt),
-    lastQuizDate: userAchievements.lastQuizDate ? Timestamp.fromDate(userAchievements.lastQuizDate) : null
-  });
+    const docRef = doc(firestore, ACHIEVEMENTS_COLLECTION, userId);
+    batch.set(docRef, {
+      ...userAchievements,
+      updatedAt: Timestamp.fromDate(userAchievements.updatedAt),
+      lastQuizDate: userAchievements.lastQuizDate ? Timestamp.fromDate(userAchievements.lastQuizDate) : null
+    } as import('firebase/firestore').DocumentData);
 
-  await batch.commit();
+    await batch.commit();
 
   return newlyUnlocked;
 };
@@ -233,17 +233,19 @@ export const updateDailyStreak = async (userId: string): Promise<DailyStreak> =>
   today.setHours(0, 0, 0, 0); // Start of day
 
   try {
+    const { doc, getDoc, setDoc, Timestamp } = await import('firebase/firestore');
+    const { firestore } = await getFirestoreInstance();
     const docRef = doc(firestore, STREAKS_COLLECTION, userId);
     const docSnap = await getDoc(docRef);
     
     let streak: DailyStreak;
     
-    if (docSnap.exists()) {
+      if (docSnap.exists()) {
       const data = docSnap.data();
       streak = {
         ...data,
-        lastActiveDate: data.lastActiveDate?.toDate() || new Date(),
-        streakHistory: data.streakHistory?.map((date: Timestamp) => date.toDate()) || []
+        lastActiveDate: data.lastActiveDate && typeof (data.lastActiveDate as import('firebase/firestore').DocumentData)?.toDate === 'function' ? (data.lastActiveDate as import('firebase/firestore').DocumentData).toDate() : data.lastActiveDate || new Date(),
+        streakHistory: (data.streakHistory || []).map((date: unknown) => (typeof (date as import('firebase/firestore').DocumentData)?.toDate === 'function' ? (date as import('firebase/firestore').DocumentData).toDate() : date))
       } as DailyStreak;
     } else {
       // Initialize new streak
@@ -343,11 +345,13 @@ export const updateDailyStreak = async (userId: string): Promise<DailyStreak> =>
       // Always update the streak values and updatedAt timestamp
       userAchievements.updatedAt = new Date();
 
-      const achievementsRef = doc(firestore, ACHIEVEMENTS_COLLECTION, userId);
-      await updateDoc(achievementsRef, {
-        ...userAchievements,
-        updatedAt: Timestamp.fromDate(userAchievements.updatedAt)
-      });
+        const { doc, updateDoc, Timestamp } = await import('firebase/firestore');
+        const { firestore } = await getFirestoreInstance();
+        const achievementsRef = doc(firestore, ACHIEVEMENTS_COLLECTION, userId);
+        await updateDoc(achievementsRef, {
+          ...userAchievements,
+          updatedAt: Timestamp.fromDate(userAchievements.updatedAt)
+        } as import('firebase/firestore').DocumentData);
     }
 
     return streak;
@@ -360,15 +364,17 @@ export const updateDailyStreak = async (userId: string): Promise<DailyStreak> =>
 // Get user's daily streak
 export const getUserStreak = async (userId: string): Promise<DailyStreak | null> => {
   try {
+    const { firestore } = await getFirestoreInstance();
+    const { doc, getDoc } = await import('firebase/firestore');
     const docRef = doc(firestore, STREAKS_COLLECTION, userId);
     const docSnap = await getDoc(docRef);
-    
-    if (docSnap.exists()) {
+
+      if (docSnap.exists()) {
       const data = docSnap.data();
       return {
         ...data,
-        lastActiveDate: data.lastActiveDate?.toDate() || new Date(),
-        streakHistory: data.streakHistory?.map((date: Timestamp) => date.toDate()) || []
+        lastActiveDate: data.lastActiveDate && typeof (data.lastActiveDate as import('firebase/firestore').DocumentData)?.toDate === 'function' ? (data.lastActiveDate as import('firebase/firestore').DocumentData).toDate() : data.lastActiveDate || new Date(),
+        streakHistory: (data.streakHistory || []).map((date: unknown) => (typeof (date as import('firebase/firestore').DocumentData)?.toDate === 'function' ? (date as import('firebase/firestore').DocumentData).toDate() : date))
       } as DailyStreak;
     }
     return null;
@@ -380,41 +386,49 @@ export const getUserStreak = async (userId: string): Promise<DailyStreak | null>
 
 // Real-time listener for user achievements
 export const subscribeToUserAchievements = (
-  userId: string, 
+  userId: string,
   callback: (achievements: UserAchievements | null) => void
 ) => {
-  const docRef = doc(firestore, ACHIEVEMENTS_COLLECTION, userId);
-  
-  return onSnapshot(docRef, (doc) => {
-    if (doc.exists()) {
-      const data = doc.data();
-      const achievements: UserAchievements = {
-        ...data,
-        updatedAt: data.updatedAt?.toDate() || new Date(),
-        lastQuizDate: data.lastQuizDate?.toDate()
-      } as UserAchievements;
-      callback(achievements);
-    } else {
-      callback(null);
-    }
-  });
-};
+  // Use runtime import to subscribe
+  let unsub: (() => void) | null = null;
+  (async () => {
+    const { doc, onSnapshot } = await import('firebase/firestore');
+    const { firestore } = await getFirestoreInstance();
+    const docRef = doc(firestore, ACHIEVEMENTS_COLLECTION, userId);
+    unsub = onSnapshot(docRef, (d) => {
+      if (d.exists()) {
+        const data = d.data();
+        const achievements: UserAchievements = {
+          ...data,
+          updatedAt: data.updatedAt?.toDate() || new Date(),
+          lastQuizDate: data.lastQuizDate?.toDate()
+        } as UserAchievements;
+        callback(achievements);
+      } else {
+        callback(null);
+      }
+    });
+  })();
+  return () => { if (unsub) unsub(); };
+}
 
 // Get detailed daily streak data
 export const getUserDailyStreak = async (userId: string): Promise<DailyStreak | null> => {
   try {
+    const { firestore } = await getFirestoreInstance();
+    const { doc, getDoc } = await import('firebase/firestore');
     const docRef = doc(firestore, STREAKS_COLLECTION, userId);
     const docSnap = await getDoc(docRef);
-    
-    if (docSnap.exists()) {
+
+      if (docSnap.exists()) {
       const data = docSnap.data();
       return {
         ...data,
-        lastActiveDate: data.lastActiveDate?.toDate() || new Date(),
-        streakHistory: data.streakHistory?.map((date: Timestamp) => date.toDate()) || []
+        lastActiveDate: data.lastActiveDate && typeof (data.lastActiveDate as import('firebase/firestore').DocumentData)?.toDate === 'function' ? (data.lastActiveDate as import('firebase/firestore').DocumentData).toDate() : data.lastActiveDate || new Date(),
+        streakHistory: (data.streakHistory || []).map((date: unknown) => (typeof (date as import('firebase/firestore').DocumentData)?.toDate === 'function' ? (date as import('firebase/firestore').DocumentData).toDate() : date))
       } as DailyStreak;
     }
-    
+
     return null;
   } catch (error) {
     console.error('Error getting user daily streak:', error);
@@ -424,29 +438,33 @@ export const getUserDailyStreak = async (userId: string): Promise<DailyStreak | 
 
 // Subscribe to daily streak updates
 export const subscribeToUserDailyStreak = (
-  userId: string, 
+  userId: string,
   callback: (streak: DailyStreak | null) => void
 ): (() => void) => {
-  const docRef = doc(firestore, STREAKS_COLLECTION, userId);
-  
-  const unsubscribe = onSnapshot(docRef, (docSnap) => {
-    if (docSnap.exists()) {
-      const data = docSnap.data();
-      const streak: DailyStreak = {
-        ...data,
-        lastActiveDate: data.lastActiveDate?.toDate() || new Date(),
-        streakHistory: data.streakHistory?.map((date: Timestamp) => date.toDate()) || []
-      } as DailyStreak;
-      callback(streak);
-    } else {
+  let unsub: (() => void) | null = null;
+  (async () => {
+    const { doc, onSnapshot } = await import('firebase/firestore');
+    const { firestore } = await getFirestoreInstance();
+    const docRef = doc(firestore, STREAKS_COLLECTION, userId);
+    unsub = onSnapshot(docRef, (docSnap) => {
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        const streak: DailyStreak = {
+          ...data,
+          lastActiveDate: data.lastActiveDate && typeof (data.lastActiveDate as import('firebase/firestore').DocumentData)?.toDate === 'function' ? (data.lastActiveDate as import('firebase/firestore').DocumentData).toDate() : data.lastActiveDate || new Date(),
+          streakHistory: (data.streakHistory || []).map((date: unknown) => (typeof (date as import('firebase/firestore').DocumentData)?.toDate === 'function' ? (date as import('firebase/firestore').DocumentData).toDate() : date))
+        } as DailyStreak;
+        callback(streak);
+      } else {
+        callback(null);
+      }
+    }, (error) => {
+      console.error('Error subscribing to daily streak:', error);
       callback(null);
-    }
-  }, (error) => {
-    console.error('Error subscribing to daily streak:', error);
-    callback(null);
-  });
-  
-  return unsubscribe;
+    });
+  })();
+
+  return () => { if (unsub) unsub(); };
 };
 
 // Helper functions

@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, lazy, Suspense } from 'react';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth } from './firebase/config';
 
@@ -12,8 +12,9 @@ import { TimedQuiz } from './components/TimedQuiz';
 import { ChallengeResults } from './components/ChallengeResults';
 import { TimedLeaderboard } from './components/TimedLeaderboard';
 import Leaderboard from './components/Leaderboard';
-import AdminDashboard from './components/AdminDashboard';
+const AdminDashboard = lazy(() => import('./components/AdminDashboard'));
 import AchievementDashboard from './components/AchievementDashboard';
+const BookmarksManager = lazy(() => import('./components/BookmarksManager'));
 import ThemeToggle from './components/ThemeToggle';
 import { AuthModal } from './components/AuthModal';
 import { UserProfile } from './components/UserProfile';
@@ -25,7 +26,7 @@ import CustomLoader from './components/CustomLoader';
 import AutoTimedChallengeSync from './components/AutoTimedChallengeSync';
 import './App.css';
 
-type AppView = 'quiz' | 'timed-challenge' | 'leaderboard' | 'admin' | 'achievements';
+type AppView = 'quiz' | 'timed-challenge' | 'leaderboard' | 'admin' | 'achievements' | 'bookmarks';
 
 function App() {
   const { isQuizStarted, resetQuiz } = useQuizStore();
@@ -248,6 +249,14 @@ function App() {
               >
                 🎖️ Achievements
               </button>
+              {user && (
+                <button 
+                  className={`nav-tab ${currentView === 'bookmarks' ? 'active' : ''}`}
+                  onClick={() => handleViewChange('bookmarks')}
+                >
+                  📚 Bookmarks
+                </button>
+              )}
               {user && isAdmin(user.email) && (
                 <button 
                   className={`nav-tab ${currentView === 'admin' ? 'active' : ''}`}
@@ -323,8 +332,23 @@ function App() {
           </div>
         ) : currentView === 'achievements' ? (
           <AchievementDashboard />
+        ) : currentView === 'bookmarks' ? (
+          <Suspense fallback={<CustomLoader text="Loading bookmarks..." />}>
+            <BookmarksManager 
+              onStartQuiz={() => {
+                // Start a quiz with bookmarks using existing review deck functionality
+                if (user) {
+                  // The startReviewDeck function in quiz store handles bookmark loading
+                  setCurrentView('quiz');
+                }
+              }}
+              onClose={() => setCurrentView('quiz')}
+            />
+          </Suspense>
         ) : (
-          <AdminDashboard />
+          <Suspense fallback={<CustomLoader text="Loading admin dashboard..." />}> 
+            <AdminDashboard />
+          </Suspense>
         )}
 
         <AuthModal 
