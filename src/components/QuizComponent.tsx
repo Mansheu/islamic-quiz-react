@@ -10,7 +10,7 @@ import BookmarkButton from './BookmarkButton';
 import ReportButton from './ReportButton';
 import CustomLoader from './CustomLoader';
 import type { Achievement } from '../types/achievements';
-import { useNotifications } from '../hooks/useNotifications';
+import useInlineNotification from '../hooks/useInlineNotification';
 import './QuizComponent.css';
 
 type ReportType = 'incorrect' | 'unclear' | 'typo' | 'other';
@@ -42,7 +42,7 @@ const QuizComponent: React.FC = () => {
   const [showGuestNotification, setShowGuestNotification] = useState(false);
   const [unlockedAchievements, setUnlockedAchievements] = useState<Achievement[]>([]);
   const [reviewFilter, setReviewFilter] = useState<'all' | 'incorrect' | 'correct'>('all');
-  const { showSuccess, showError, showInfo } = useNotifications();
+  const { inlineNotification, showSuccess, showError } = useInlineNotification({ autoClose: true, autoCloseDelay: 3000 });
 
   // Bookmark/report state
   const [bookmarkedKeys, setBookmarkedKeys] = useState<Set<string>>(new Set());
@@ -104,7 +104,7 @@ const QuizComponent: React.FC = () => {
 
   const toggleBookmark = async () => {
     if (!user) {
-      showInfo('🔐 Sign in to bookmark questions and build your personal review collection');
+      showError('🔐 Sign in to bookmark questions and build your personal review collection');
       return;
     }
     
@@ -119,21 +119,21 @@ const QuizComponent: React.FC = () => {
       if (isBookmarked) {
         await bm.removeBookmark(user.uid, question);
         setBookmarkedKeys(prev => { const s = new Set(prev); s.delete(currentKey); return s; });
-        showSuccess('📖 Removed from bookmarks');
+        showSuccess('Removed from bookmarks');
       } else {
         await bm.addBookmark(user.uid, question);
         setBookmarkedKeys(prev => new Set(prev).add(currentKey));
-        showSuccess('⭐ Saved to bookmarks! Review later from the Bookmarks tab.');
+        showSuccess('Saved to bookmarks! Review later from the Bookmarks tab.');
       }
     } catch (e) {
       console.error('Bookmark toggle failed', e);
-      showError('❌ Could not update bookmark. Please try again.');
+      showError('Could not update bookmark. Please try again.');
     }
   };
 
   const submitReport = async () => {
     if (!user) {
-      showInfo('🔐 Sign in to report questions and help improve our content');
+      showError('🔐 Sign in to report questions and help improve our content');
       return;
     }
     
@@ -153,7 +153,7 @@ const QuizComponent: React.FC = () => {
       setReportOpen(false);
       setReportMessage('');
       setReportType('incorrect');
-      showSuccess('🚩 Report submitted successfully! Our team will review it shortly.');
+      showSuccess('Report submitted successfully! Our team will review it shortly.');
     } catch (e) {
       console.error('Report failed with error:', e);
       showError('❌ Could not submit report. Please try again.');
@@ -379,6 +379,9 @@ const QuizComponent: React.FC = () => {
             size="medium"
           />
         </div>
+
+        {/* Inline notification for quiz actions */}
+        {inlineNotification}
 
         {/* Options */}
         <div className="options">

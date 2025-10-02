@@ -5,7 +5,7 @@ import {
   type QuestionReport, 
   type ReportStatus 
 } from '../firebase/reports';
-import { useNotifications } from '../hooks/useNotifications';
+import useInlineNotification from '../hooks/useInlineNotification';
 import './ReportsManager.css';
 
 interface ReportsManagerProps {
@@ -16,7 +16,7 @@ const ReportsManager: React.FC<ReportsManagerProps> = ({ onUpdate }) => {
   const [reports, setReports] = useState<QuestionReport[]>([]);
   const [loading, setLoading] = useState(false);
   const [filter, setFilter] = useState<ReportStatus | 'all'>('all');
-  const { showNotification } = useNotifications();
+  const { inlineNotification, showError, showSuccess } = useInlineNotification({ autoClose: true, autoCloseDelay: 3000 });
 
   const loadReports = React.useCallback(async () => {
     setLoading(true);
@@ -25,11 +25,11 @@ const ReportsManager: React.FC<ReportsManagerProps> = ({ onUpdate }) => {
       setReports(reportsData);
     } catch (error) {
       console.error('Error loading reports:', error);
-      showNotification({ message: 'Failed to load reports', type: 'error' });
+      showError('Failed to load reports');
     } finally {
       setLoading(false);
     }
-  }, [showNotification]);
+  }, [showError]);
 
   useEffect(() => {
     loadReports();
@@ -38,15 +38,12 @@ const ReportsManager: React.FC<ReportsManagerProps> = ({ onUpdate }) => {
   const handleReportAction = async (reportId: string, action: ReportStatus) => {
     try {
       await updateReportStatus(reportId, action);
-      showNotification({ 
-        message: `Report ${action === 'resolved' ? 'resolved' : 'dismissed'} successfully`, 
-        type: 'success' 
-      });
+      showSuccess(`Report ${action === 'resolved' ? 'resolved' : 'dismissed'} successfully`);
       await loadReports();
       onUpdate?.();
     } catch (error) {
       console.error('Error updating report:', error);
-      showNotification({ message: 'Failed to update report', type: 'error' });
+      showError('Failed to update report');
     }
   };
 
@@ -80,6 +77,8 @@ const ReportsManager: React.FC<ReportsManagerProps> = ({ onUpdate }) => {
 
   return (
     <div className="reports-manager">
+      {/* Inline notification area */}
+      {inlineNotification}
       <div className="reports-header">
         <h2>Question Reports</h2>
         <div className="reports-stats">

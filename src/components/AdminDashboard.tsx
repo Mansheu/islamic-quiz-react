@@ -19,8 +19,11 @@ import {
   getAllQuestionsForAdmin,
   addQuestion,
   updateQuestion,
-  deleteQuestion,
-  bulkImportQuestions 
+  permanentlyDeleteQuestion,
+  bulkImportQuestions,
+  getQuestionById,
+  addDeletedStaticKey,
+  getDeletedStaticKeys
 } from '../firebase/questions';
 import { Timestamp } from 'firebase/firestore';
 import { QuestionEditor } from './QuestionEditor';
@@ -28,7 +31,7 @@ import { QuestionList } from './QuestionList';
 import { allQuestions } from '../data/questions';
 import { QuestionService } from '../services/questionService';
 import type { Question } from '../types';
-import { useNotifications } from '../hooks/useNotifications';
+import useInlineNotification from '../hooks/useInlineNotification';
 import CustomLoader from './CustomLoader';
 import ReportsManager from './ReportsManager';
 import './AdminDashboard.css';
@@ -56,19 +59,25 @@ const AdminDashboard: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'overview' | 'users' | 'quiz-stats' | 'questions' | 'system' | 'admin-actions' | 'reports'>('overview');
   const [error, setError] = useState<string | null>(null);
   
-  // Questions management state
-  const { showNotification } = useNotifications();
+  // Inline notifications
+  const { inlineNotification, showSuccess, showError } = useInlineNotification({ autoClose: true, autoCloseDelay: 3000 });
+  // Backward-compat: harmless no-op for legacy toast calls remaining in file
+  // Keep until we fully remove old usages; typed to avoid eslint warnings
+  const showNotification = (...args: unknown[]): void => { void args; };
   const [questions, setQuestions] = useState<(Question & {
     isActive?: boolean;
     createdAt?: Timestamp;
     updatedAt?: Timestamp;
     createdBy?: string;
+    originalKey?: string;
+    source?: 'static' | 'manual';
   })[]>([]);
   const [questionsLoading, setQuestionsLoading] = useState(false);
   const [showQuestionEditor, setShowQuestionEditor] = useState(false);
   const [editingQuestion, setEditingQuestion] = useState<Question | null>(null);
   const [showMigrationPrompt, setShowMigrationPrompt] = useState(false);
   const [staticSyncLoading, setStaticSyncLoading] = useState(false);
+  const [deletedStaticKeys, setDeletedStaticKeys] = useState<Set<string>>(new Set());
 
   // Load admin data
   const loadAdminData = async () => {
@@ -98,6 +107,15 @@ const AdminDashboard: React.FC = () => {
 
   useEffect(() => {
     loadAdminData();
+    // load tombstoned static keys once
+    (async () => {
+      try {
+        const keys = await getDeletedStaticKeys();
+        setDeletedStaticKeys(keys);
+      } catch {
+        // ignore
+      }
+    })();
   }, []);
 
   // Load questions from Firebase
@@ -113,11 +131,11 @@ const AdminDashboard: React.FC = () => {
       }
     } catch (err) {
       console.error('Error loading questions:', err);
-      showNotification({ message: 'Failed to load questions', type: 'error' });
+      showError('Failed to load questions');
     } finally {
       setQuestionsLoading(false);
     }
-  }, [showNotification]);
+  }, [showError]);
 
   // Load questions when questions tab is selected
   useEffect(() => {
@@ -133,12 +151,13 @@ const AdminDashboard: React.FC = () => {
     try {
       if (editingQuestion?.id) {
         // Update existing question
-        await updateQuestion(editingQuestion.id, questionData);
-        showNotification({ message: 'Question updated successfully!', type: 'success' });
+        const prevKey = `${editingQuestion.question}__${editingQuestion.answer}`.toLowerCase();
+        await updateQuestion(editingQuestion.id, { ...questionData, originalKey: prevKey });
+        showSuccess('Question updated successfully!');
       } else {
         // Create new question
         await addQuestion(questionData, user.uid);
-        showNotification({ message: 'Question created successfully!', type: 'success' });
+        showSuccess('Question created successfully!');
       }
       
       // Refresh questions list and close editor
@@ -147,7 +166,7 @@ const AdminDashboard: React.FC = () => {
       setEditingQuestion(null);
     } catch (error) {
       console.error('Error saving question:', error);
-      showNotification({ message: 'Failed to save question', type: 'error' });
+      showError('Failed to save question');
     }
   };
 
@@ -160,12 +179,19 @@ const AdminDashboard: React.FC = () => {
   // Handle deleting a question
   const handleDeleteQuestion = async (questionId: string) => {
     try {
-      await deleteQuestion(questionId);
-      showNotification({ message: 'Question deleted successfully', type: 'success' });
+      // Hard delete so it is removed completely (not just deactivated)
+      const q = await getQuestionById(questionId);
+      if (q) {
+        const origKey = q.originalKey || `${q.question}__${q.answer}`.toLowerCase();
+        await addDeletedStaticKey(origKey, user?.uid || 'admin');
+        setDeletedStaticKeys(prev => new Set(prev).add(origKey));
+      }
+      await permanentlyDeleteQuestion(questionId);
+      showSuccess('Question permanently deleted');
       await loadQuestions();
     } catch (error) {
       console.error('Error deleting question:', error);
-      showNotification({ message: 'Failed to delete question', type: 'error' });
+      showError('Failed to delete question');
     }
   };
 
@@ -187,12 +213,12 @@ const AdminDashboard: React.FC = () => {
     try {
       setQuestionsLoading(true);
       await bulkImportQuestions(allQuestions, user.uid);
-      showNotification({ message: `Successfully imported ${allQuestions.length} questions!`, type: 'success' });
+      showSuccess(`Successfully imported ${allQuestions.length} questions!`);
       setShowMigrationPrompt(false);
       await loadQuestions();
     } catch (error) {
       console.error('Error migrating questions:', error);
-      showNotification({ message: 'Failed to migrate questions', type: 'error' });
+      showError('Failed to migrate questions');
     } finally {
       setQuestionsLoading(false);
     }
@@ -204,11 +230,19 @@ const AdminDashboard: React.FC = () => {
     try {
       setStaticSyncLoading(true);
       const key = (q: Pick<Question, 'question' | 'answer'>) => `${q.question}__${q.answer}`.toLowerCase();
-      const existingKeys = new Set(questions.map(q => key(q)));
-      const missing = allQuestions.filter(q => !existingKeys.has(key(q)));
+      const existingKeys = new Set<string>();
+      questions.forEach(q => {
+        existingKeys.add(key(q));
+        if (q.originalKey) existingKeys.add(q.originalKey);
+      });
+      const deletedKeys = await getDeletedStaticKeys();
+      const missing = allQuestions.filter(q => {
+        const k = key(q);
+        return !existingKeys.has(k) && !deletedKeys.has(k);
+      });
 
       if (missing.length === 0) {
-        showNotification({ message: 'All static questions are already synced.', type: 'success' });
+        showSuccess('All static questions are already synced.');
         return;
       }
 
@@ -220,14 +254,14 @@ const AdminDashboard: React.FC = () => {
         explanation: q.explanation,
       })), user.uid);
 
-      showNotification({ message: `Synced ${missing.length} static questions to Firestore`, type: 'success' });
+      showSuccess(`Synced ${missing.length} static questions to Firestore`);
       await loadQuestions();
       // Ensure quiz service uses latest Firestore data
       QuestionService.enableFirebaseMode();
       await QuestionService.refresh();
     } catch (error) {
       console.error('Error syncing static questions:', error);
-      showNotification({ message: 'Failed to sync static questions', type: 'error' });
+      showError('Failed to sync static questions');
     } finally {
       setStaticSyncLoading(false);
     }
@@ -253,14 +287,16 @@ const AdminDashboard: React.FC = () => {
       try {
         const result = await resetUserScores(userId);
         if (result.success) {
+          showSuccess(`Scores reset for ${displayName}`);
           showNotification({ message: `✅ Scores reset for ${displayName}`, type: 'success' });
           await loadAdminData(); // Refresh the data
         } else {
+          showError(`Failed to reset scores: ${result.message}`);
           showNotification({ message: `❌ Failed to reset scores: ${result.message}`, type: 'error' });
         }
       } catch (err) {
         console.error('Error resetting user scores:', err);
-        showNotification({ message: 'Error resetting user scores. Please try again.', type: 'error' });
+        showError('Error resetting user scores. Please try again.');
       }
     }
   };
@@ -347,6 +383,8 @@ const AdminDashboard: React.FC = () => {
         <div className="welcome-message">
           <p>Welcome, Administrator {user.displayName || user.email}</p>
         </div>
+
+        {inlineNotification}
 
         {error && (
           <div className="error-message">
@@ -621,9 +659,16 @@ const AdminDashboard: React.FC = () => {
             {/* Static Questions Sync */}
             {(() => {
               const key = (q: Pick<Question, 'question' | 'answer'>) => `${q.question}__${q.answer}`.toLowerCase();
-              const existingKeys = new Set(questions.map(q => key(q)));
+              const existingKeys = new Set<string>();
+              questions.forEach(q => {
+                existingKeys.add(key(q));
+                if (q.originalKey) existingKeys.add(q.originalKey);
+              });
               const curatedCount = allQuestions.length;
-              const missingCount = allQuestions.filter(q => !existingKeys.has(key(q))).length;
+              const missingCount = allQuestions.filter(q => {
+                const k = key(q);
+                return !existingKeys.has(k) && !deletedStaticKeys.has(k);
+              }).length;
               if (missingCount === 0) return null;
               const inFirestore = curatedCount - missingCount;
               return (
@@ -661,7 +706,7 @@ const AdminDashboard: React.FC = () => {
               <div className="questions-actions">
                 <button 
                   className="btn btn-primary"
-                  onClick={() => setShowQuestionEditor(true)}
+                  onClick={() => { setEditingQuestion(null); setShowQuestionEditor(true); }}
                   disabled={showQuestionEditor}
                 >
                   ➕ Add New Question
@@ -768,6 +813,7 @@ const AdminDashboard: React.FC = () => {
                           try {
                             const result = await resetAllUserScores();
                             if (result.success) {
+                              showSuccess('All user scores have been reset successfully');
                               showNotification({ message: '✅ All user scores have been reset successfully', type: 'success' });
                               // Clear local persisted timed challenge data
                               localStorage.removeItem('timed-challenge-storage');
@@ -775,9 +821,11 @@ const AdminDashboard: React.FC = () => {
                               // Force reload to ensure all stats are refreshed
                               setTimeout(() => window.location.reload(), 1000);
                             } else {
+                              showError(`Failed to reset scores: ${result.message}`);
                               showNotification({ message: `❌ Failed to reset scores: ${result.message}`, type: 'error' });
                             }
                           } catch (error) {
+                            showError('Error resetting scores');
                             showNotification({ message: '❌ Error resetting scores', type: 'error' });
                             console.error('Reset error:', error);
                           }
@@ -821,6 +869,7 @@ const AdminDashboard: React.FC = () => {
                       a.click();
                       document.body.removeChild(a);
                       URL.revokeObjectURL(url);
+                      showSuccess('Admin data exported successfully');
                       showNotification({ message: '📊 Admin data exported successfully', type: 'success' });
                     }}
                   >
@@ -847,3 +896,4 @@ const AdminDashboard: React.FC = () => {
 };
 
 export default AdminDashboard;
+

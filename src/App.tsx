@@ -20,7 +20,6 @@ import { AuthModal } from './components/AuthModal';
 import { UserProfile } from './components/UserProfile';
 import { AuthPrompt } from './components/AuthPrompt';
 import IntroOverlay from './components/IntroOverlay';
-import NotificationToast from './components/NotificationToast';
 import ScrollToTop from './components/ScrollToTop';
 import CustomLoader from './components/CustomLoader';
 import AutoTimedChallengeSync from './components/AutoTimedChallengeSync';
@@ -376,7 +375,7 @@ function App() {
           onClose={() => setShowProfile(false)} 
         />
 
-        <NotificationToast />
+        {/* Inline notifications are rendered within each feature component */}
         <ScrollToTop />
 
         <div className="sticky-badge">

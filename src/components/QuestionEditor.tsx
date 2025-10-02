@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import type { Question } from '../types';
-import { useNotifications } from '../hooks/useNotifications';
+import useInlineNotification from '../hooks/useInlineNotification';
 import './QuestionEditor.css';
 
 interface QuestionEditorProps {
@@ -25,7 +25,7 @@ export const QuestionEditor: React.FC<QuestionEditorProps> = ({
   onCancel,
   isEditing = false
 }) => {
-  const { showNotification } = useNotifications();
+  const { inlineNotification, showError, showSuccess } = useInlineNotification({ autoClose: true, autoCloseDelay: 3000 });
   const [formData, setFormData] = useState({
     question: '',
     options: ['', '', '', ''],
@@ -120,7 +120,7 @@ export const QuestionEditor: React.FC<QuestionEditorProps> = ({
     e.preventDefault();
     
     if (!validateForm()) {
-      showNotification({ message: 'Please fix the errors before submitting', type: 'error' });
+      showError('Please fix the errors before submitting');
       return;
     }
 
@@ -134,11 +134,7 @@ export const QuestionEditor: React.FC<QuestionEditorProps> = ({
         topic: formData.topic.trim(),
         explanation: formData.explanation.trim()
       });
-      
-      showNotification({
-        message: isEditing ? 'Question updated successfully!' : 'Question created successfully!',
-        type: 'success'
-      });
+      showSuccess(isEditing ? 'Question updated successfully!' : 'Question created successfully!');
       
       // Reset form if creating new question
       if (!isEditing) {
@@ -152,7 +148,7 @@ export const QuestionEditor: React.FC<QuestionEditorProps> = ({
       }
     } catch (error) {
       console.error('Error saving question:', error);
-      showNotification({ message: 'Failed to save question. Please try again.', type: 'error' });
+      showError('Failed to save question. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
@@ -167,6 +163,7 @@ export const QuestionEditor: React.FC<QuestionEditorProps> = ({
 
   return (
     <div className="question-editor">
+      {inlineNotification}
       <div className="question-editor-header">
         <h2>{isEditing ? 'Edit Question' : 'Create New Question'}</h2>
       </div>

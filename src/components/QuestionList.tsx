@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Timestamp } from 'firebase/firestore';
 import type { Question } from '../types';
-import { useNotifications } from '../hooks/useNotifications';
+import useInlineNotification from '../hooks/useInlineNotification';
 import CustomLoader from './CustomLoader';
 import './QuestionList.css';
 
@@ -25,7 +25,7 @@ export const QuestionList: React.FC<QuestionListProps> = ({
   onToggleQuestion,
   isLoading = false
 }) => {
-  const { showNotification } = useNotifications();
+  const { inlineNotification, showSuccess, showError } = useInlineNotification({ autoClose: true, autoCloseDelay: 3000 });
   const [selectedTopic, setSelectedTopic] = useState<string>('All');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -57,10 +57,10 @@ export const QuestionList: React.FC<QuestionListProps> = ({
     
     try {
       await onDeleteQuestion(questionId);
-      showNotification({ message: 'Question deleted successfully', type: 'success' });
+      showSuccess('Question deleted successfully');
     } catch (error) {
       console.error('Error deleting question:', error);
-      showNotification({ message: 'Failed to delete question', type: 'error' });
+      showError('Failed to delete question');
     } finally {
       setDeletingId(null);
     }
@@ -73,13 +73,10 @@ export const QuestionList: React.FC<QuestionListProps> = ({
     
     try {
       await onToggleQuestion(questionId, !currentStatus);
-      showNotification({
-        message: `Question ${!currentStatus ? 'activated' : 'deactivated'} successfully`,
-        type: 'success'
-      });
+      showSuccess(`Question ${!currentStatus ? 'activated' : 'deactivated'} successfully`);
     } catch (error) {
       console.error('Error toggling question status:', error);
-      showNotification({ message: 'Failed to update question status', type: 'error' });
+      showError('Failed to update question status');
     } finally {
       setTogglingId(null);
     }
@@ -109,6 +106,7 @@ export const QuestionList: React.FC<QuestionListProps> = ({
 
   return (
     <div className="question-list">
+      {inlineNotification}
       {/* Header with filters */}
       <div className="question-list-header">
         <div className="filters-row">

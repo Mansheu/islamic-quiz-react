@@ -8,9 +8,11 @@ export interface FirebaseQuestion extends Omit<Question, 'id'> {
   updatedAt: Timestamp;
   isActive: boolean;
   createdBy: string; // User ID of the admin who created it
+  originalKey?: string; // stable key from original data (for sync dedupe)
+  source?: 'static' | 'manual';
 }
-
 const QUESTIONS_COLLECTION = 'questions';
+const TOMBSTONES_COLLECTION = 'question_tombstones';
 
 /**
  * Get all questions from Firestore
@@ -127,12 +129,15 @@ export const addQuestion = async (
     const questionsRef = collection(firestore, QUESTIONS_COLLECTION);
     const now = Timestamp.now();
     
+    const originalKey = `${question.question}__${question.answer}`.toLowerCase();
     const questionData: Omit<FirebaseQuestion, 'id'> = {
       ...question,
       createdAt: now,
       updatedAt: now,
       isActive: true,
-      createdBy: userId
+      createdBy: userId,
+      source: 'manual',
+      originalKey
     };
     
   const docRef = await addDoc(questionsRef, questionData as import('firebase/firestore').DocumentData);
@@ -148,7 +153,7 @@ export const addQuestion = async (
  */
 export const updateQuestion = async (
   questionId: string, 
-  updates: Partial<Omit<Question, 'id'>> & { isActive?: boolean }
+  updates: Partial<Omit<Question, 'id'>> & { isActive?: boolean; originalKey?: string; source?: 'static' | 'manual' }
 ): Promise<void> => {
   try {
     const { firestore } = await getFirestoreInstance();
@@ -201,6 +206,80 @@ export const permanentlyDeleteQuestion = async (questionId: string): Promise<voi
   }
 };
 
+
+/**
+ * Fetch a single question by ID with admin fields
+ */
+export const getQuestionById = async (
+  questionId: string
+): Promise<(Question & {
+  isActive: boolean;
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
+  createdBy: string;
+  originalKey?: string;
+  source?: 'static' | 'manual';
+}) | null> => {
+  try {
+    const { firestore } = await getFirestoreInstance();
+    const { doc, getDoc } = await import('firebase/firestore');
+    const ref = doc(firestore, QUESTIONS_COLLECTION, questionId);
+    const snap = await getDoc(ref);
+    if (!snap.exists()) return null;
+    const data = snap.data() as FirebaseQuestion;
+    return {
+      id: snap.id,
+      question: data.question,
+      options: data.options,
+      answer: data.answer,
+      topic: data.topic,
+      explanation: data.explanation,
+      isActive: data.isActive,
+      createdAt: data.createdAt,
+      updatedAt: data.updatedAt,
+      createdBy: data.createdBy,
+      originalKey: data.originalKey,
+      source: data.source
+    };
+  } catch (error) {
+    console.error('Error fetching question by id:', error);
+    throw new Error('Failed to fetch question');
+  }
+};
+
+/**
+ * Record a tombstone for a deleted static question so sync won't re-add it
+ */
+export const addDeletedStaticKey = async (originalKey: string, userId: string): Promise<void> => {
+  try {
+    const { firestore } = await getFirestoreInstance();
+    const { collection, doc, setDoc, Timestamp } = await import('firebase/firestore');
+    const col = collection(firestore, TOMBSTONES_COLLECTION);
+    const ref = doc(col, originalKey);
+    await setDoc(ref, { deletedAt: Timestamp.now(), userId });
+  } catch (error) {
+    console.error('Error adding deleted static key:', error);
+  }
+};
+
+/**
+ * Get set of tombstoned static keys
+ */
+export const getDeletedStaticKeys = async (): Promise<Set<string>> => {
+  try {
+    const { firestore } = await getFirestoreInstance();
+    const { collection, getDocs } = await import('firebase/firestore');
+    const col = collection(firestore, TOMBSTONES_COLLECTION);
+    const snap = await getDocs(col);
+    const keys = new Set<string>();
+    snap.forEach(d => keys.add(d.id));
+    return keys;
+  } catch (error) {
+    console.error('Error fetching deleted static keys:', error);
+    return new Set<string>();
+  }
+};
+
 /**
  * Bulk import questions (useful for migrating from static data)
  */
@@ -217,12 +296,15 @@ export const bulkImportQuestions = async (
     
     questions.forEach((question) => {
       const docRef = doc(questionsRef);
+      const originalKey = `${question.question}__${question.answer}`.toLowerCase();
       const questionData: Omit<FirebaseQuestion, 'id'> = {
         ...question,
         createdAt: now,
         updatedAt: now,
         isActive: true,
-        createdBy: userId
+        createdBy: userId,
+        source: 'static',
+        originalKey
       };
       
       batch.set(docRef, questionData as import('firebase/firestore').DocumentData);
@@ -242,7 +324,9 @@ export const getAllQuestionsForAdmin = async (): Promise<(Question & {
   isActive: boolean; 
   createdAt: Timestamp; 
   updatedAt: Timestamp; 
-  createdBy: string 
+  createdBy: string,
+  originalKey?: string,
+  source?: 'static' | 'manual'
 })[]> => {
   try {
     const { firestore } = await getFirestoreInstance();
@@ -255,7 +339,9 @@ export const getAllQuestionsForAdmin = async (): Promise<(Question & {
       isActive: boolean; 
       createdAt: Timestamp; 
       updatedAt: Timestamp; 
-      createdBy: string 
+      createdBy: string,
+      originalKey?: string,
+      source?: 'static' | 'manual'
     })[] = [];
     
     querySnapshot.forEach((doc) => {
@@ -270,7 +356,9 @@ export const getAllQuestionsForAdmin = async (): Promise<(Question & {
         isActive: data.isActive,
         createdAt: data.createdAt,
         updatedAt: data.updatedAt,
-        createdBy: data.createdBy
+        createdBy: data.createdBy,
+        originalKey: data.originalKey,
+        source: data.source
       });
     });
     
@@ -280,3 +368,8 @@ export const getAllQuestionsForAdmin = async (): Promise<(Question & {
     throw new Error('Failed to load questions for admin');
   }
 };
+
+
+
+
+
