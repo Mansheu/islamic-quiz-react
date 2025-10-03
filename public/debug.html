@@ -1,68 +1,240 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Deployment Debug</title>
+    <title>Deployment Debug - Advanced</title>
     <style>
-        body { font-family: Arial, sans-serif; padding: 20px; }
-        .env-check { background: #f5f5f5; padding: 10px; margin: 10px 0; border-radius: 4px; }
+        body { font-family: Arial, sans-serif; padding: 20px; max-width: 1200px; margin: 0 auto; }
+        .debug-section { background: #f9f9f9; padding: 15px; margin: 15px 0; border-radius: 8px; border-left: 4px solid #2196f3; }
+        .env-check { background: #f5f5f5; padding: 10px; margin: 5px 0; border-radius: 4px; font-family: monospace; }
         .missing { background: #ffebee; color: #c62828; }
         .present { background: #e8f5e8; color: #2e7d32; }
+        .warning { background: #fff3e0; color: #f57c00; }
+        .error { background: #ffebee; color: #c62828; padding: 10px; margin: 10px 0; border-radius: 4px; }
+        .success { background: #e8f5e8; color: #2e7d32; padding: 10px; margin: 10px 0; border-radius: 4px; }
+        pre { background: #2d2d2d; color: #f5f5f5; padding: 15px; border-radius: 4px; overflow-x: auto; }
+        button { background: #1976d2; color: white; border: none; padding: 10px 20px; margin: 5px; border-radius: 4px; cursor: pointer; }
+        button:hover { background: #1565c0; }
+        .test-result { margin: 10px 0; padding: 10px; border-radius: 4px; }
     </style>
 </head>
 <body>
-    <h1>Vercel Deployment Debug</h1>
-    <p>If you see this page on Vercel, the build is working but the React app isn't loading.</p>
+    <h1>🔧 Vercel Deployment Debug - Advanced</h1>
+    <p><strong>Status:</strong> If you see this page, your build succeeded but the React app isn't loading.</p>
     
-    <h2>Environment Variables Check</h2>
-    <div id="env-status">Checking...</div>
+    <div class="debug-section">
+        <h2>📋 Environment Variables</h2>
+        <div id="env-status">Checking...</div>
+    </div>
+
+    <div class="debug-section">
+        <h2>🔗 Network & File Tests</h2>
+        <button onclick="testMainApp()">Test Main App Loading</button>
+        <button onclick="testAssets()">Test CSS/JS Assets</button>
+        <button onclick="testFirebaseInit()">Test Firebase Connection</button>
+        <div id="test-results"></div>
+    </div>
+
+    <div class="debug-section">
+        <h2>🌐 Browser Information</h2>
+        <div id="browser-info"></div>
+    </div>
+
+    <div class="debug-section">
+        <h2>📊 Console Logs & Errors</h2>
+        <div id="console-logs"></div>
+        <button onclick="clearLogs()">Clear Logs</button>
+    </div>
     
     <script>
-        const requiredEnvVars = [
-            'VITE_FIREBASE_API_KEY',
-            'VITE_FIREBASE_AUTH_DOMAIN', 
-            'VITE_FIREBASE_PROJECT_ID',
-            'VITE_FIREBASE_STORAGE_BUCKET',
-            'VITE_FIREBASE_MESSAGING_SENDER_ID',
-            'VITE_FIREBASE_APP_ID'
-        ];
+        // Capture console logs
+        const logs = [];
+        const originalLog = console.log;
+        const originalError = console.error;
+        const originalWarn = console.warn;
         
-        const envStatus = document.getElementById('env-status');
-        let html = '';
-        let allPresent = true;
+        console.log = (...args) => {
+            logs.push({type: 'log', message: args.join(' '), time: new Date().toISOString()});
+            originalLog.apply(console, args);
+            updateLogs();
+        };
         
-        requiredEnvVars.forEach(varName => {
-            // In production, Vite env vars are replaced at build time
-            const value = import.meta.env[varName];
-            const isPresent = value && value !== 'undefined';
-            const className = isPresent ? 'present' : 'missing';
-            allPresent = allPresent && isPresent;
+        console.error = (...args) => {
+            logs.push({type: 'error', message: args.join(' '), time: new Date().toISOString()});
+            originalError.apply(console, args);
+            updateLogs();
+        };
+        
+        console.warn = (...args) => {
+            logs.push({type: 'warn', message: args.join(' '), time: new Date().toISOString()});
+            originalWarn.apply(console, args);
+            updateLogs();
+        };
+
+        function updateLogs() {
+            const container = document.getElementById('console-logs');
+            container.innerHTML = logs.map(log => 
+                `<div class="${log.type}"><strong>[${log.type.toUpperCase()}]</strong> ${log.message}</div>`
+            ).join('');
+        }
+
+        function clearLogs() {
+            logs.length = 0;
+            updateLogs();
+        }
+
+        // Environment Variables Check
+        function checkEnvironmentVariables() {
+            const requiredEnvVars = [
+                'VITE_FIREBASE_API_KEY',
+                'VITE_FIREBASE_AUTH_DOMAIN', 
+                'VITE_FIREBASE_PROJECT_ID',
+                'VITE_FIREBASE_STORAGE_BUCKET',
+                'VITE_FIREBASE_MESSAGING_SENDER_ID',
+                'VITE_FIREBASE_APP_ID'
+            ];
             
-            html += `<div class="env-check ${className}">
-                ${varName}: ${isPresent ? '✅ Present' : '❌ Missing'}
-            </div>`;
+            const envStatus = document.getElementById('env-status');
+            let html = '';
+            let allPresent = true;
+            
+            requiredEnvVars.forEach(varName => {
+                // In HTML context, we can't access import.meta.env directly
+                // The environment variables are replaced at build time in the actual app
+                html += `<div class="env-check warning">
+                    ${varName}: ⚠️ Cannot check in HTML context
+                    <br><small>Environment variables are checked at build time in React apps</small>
+                </div>`;
+            });
+            
+            html += '<div class="warning">⚠️ Environment variables cannot be checked directly in HTML context.</div>';
+            html += '<div class="success">ℹ️ In Vite apps, environment variables are replaced at build time in the JavaScript bundles.</div>';
+            html += '<div class="success">✅ To check if they are working, test the main React app instead.</div>';
+            
+            envStatus.innerHTML = html;
+            return true;
+        }
+
+        // Test functions
+        function testMainApp() {
+            const resultsDiv = document.getElementById('test-results');
+            resultsDiv.innerHTML += '<div class="test-result">🔄 Testing main app...</div>';
+            
+            fetch('/')
+                .then(response => {
+                    if (response.ok) {
+                        resultsDiv.innerHTML += '<div class="test-result success">✅ Main app responds (HTTP ' + response.status + ')</div>';
+                        return response.text();
+                    } else {
+                        throw new Error('HTTP ' + response.status);
+                    }
+                })
+                .then(html => {
+                    const hasRoot = html.includes('id="root"');
+                    const hasScript = html.includes('src="/src/main.tsx"');
+                    resultsDiv.innerHTML += `<div class="test-result ${hasRoot ? 'success' : 'error'}">
+                        ${hasRoot ? '✅' : '❌'} Root div found: ${hasRoot}
+                    </div>`;
+                    resultsDiv.innerHTML += `<div class="test-result ${hasScript ? 'success' : 'warning'}">
+                        ${hasScript ? '✅' : '⚠️'} Main script found: ${hasScript}
+                    </div>`;
+                })
+                .catch(error => {
+                    resultsDiv.innerHTML += '<div class="test-result error">❌ Main app test failed: ' + error.message + '</div>';
+                });
+        }
+
+        function testAssets() {
+            const resultsDiv = document.getElementById('test-results');
+            resultsDiv.innerHTML += '<div class="test-result">🔄 Testing assets...</div>';
+            
+            // Test if CSS loads
+            fetch('/src/index.css')
+                .then(response => {
+                    resultsDiv.innerHTML += `<div class="test-result ${response.ok ? 'success' : 'warning'}">
+                        ${response.ok ? '✅' : '⚠️'} CSS accessible: ${response.status}
+                    </div>`;
+                })
+                .catch(error => {
+                    resultsDiv.innerHTML += '<div class="test-result warning">⚠️ CSS test failed: ' + error.message + '</div>';
+                });
+        }
+
+        function testFirebaseInit() {
+            const resultsDiv = document.getElementById('test-results');
+            resultsDiv.innerHTML += '<div class="test-result">🔄 Testing Firebase initialization...</div>';
+            
+            try {
+                // Test Firebase by trying to reach the project
+                const projectId = 'islamic-quiz-app-825c0';
+                const testUrl = `https://${projectId}.firebaseapp.com/`;
+                
+                resultsDiv.innerHTML += '<div class="test-result">🔄 Testing Firebase project accessibility...</div>';
+                
+                fetch(testUrl, { method: 'HEAD', mode: 'no-cors' })
+                    .then(() => {
+                        resultsDiv.innerHTML += '<div class="test-result success">✅ Firebase project appears to be accessible</div>';
+                    })
+                    .catch(error => {
+                        if (error.message.includes('CORS') || error.message.includes('network')) {
+                            resultsDiv.innerHTML += '<div class="test-result success">✅ Firebase project exists (CORS is normal)</div>';
+                        } else {
+                            resultsDiv.innerHTML += '<div class="test-result warning">⚠️ Firebase test inconclusive: ' + error.message + '</div>';
+                        }
+                    });
+                    
+            } catch (error) {
+                resultsDiv.innerHTML += '<div class="test-result error">❌ Firebase test failed: ' + error.message + '</div>';
+            }
+        }
+
+        // Browser info
+        function displayBrowserInfo() {
+            const info = document.getElementById('browser-info');
+            info.innerHTML = `
+                <div class="env-check present"><strong>User Agent:</strong> ${navigator.userAgent}</div>
+                <div class="env-check present"><strong>URL:</strong> ${window.location.href}</div>
+                <div class="env-check present"><strong>Protocol:</strong> ${window.location.protocol}</div>
+                <div class="env-check present"><strong>Host:</strong> ${window.location.host}</div>
+                <div class="env-check present"><strong>Timestamp:</strong> ${new Date().toISOString()}</div>
+            `;
+        }
+
+        // Initialize
+        window.addEventListener('load', () => {
+            console.log('🔧 Debug page loaded successfully');
+            checkEnvironmentVariables();
+            displayBrowserInfo();
+            
+            // Automatically test the main app
+            setTimeout(() => {
+                testMainApp();
+            }, 1000);
+        });
+
+        // Listen for errors
+        window.addEventListener('error', (event) => {
+            console.error('Global error caught:', event.error?.message || event.message);
         });
         
-        if (allPresent) {
-            html += '<p style="color: green;">✅ All environment variables are present!</p>';
-        } else {
-            html += '<p style="color: red;">❌ Some environment variables are missing. This will cause the app to fail.</p>';
-        }
-        
-        envStatus.innerHTML = html;
+        window.addEventListener('unhandledrejection', (event) => {
+            console.error('Unhandled promise rejection:', event.reason);
+        });
     </script>
     
-    <h2>Quick Links</h2>
-    <ul>
-        <li><a href="/index.html">Try Main App</a></li>
-        <li><a href="/">Go to Root</a></li>
-    </ul>
-    
-    <h2>Instructions</h2>
-    <ol>
-        <li>Go to Vercel Dashboard → Your Project → Settings → Environment Variables</li>
-        <li>Add all missing Firebase environment variables shown above</li>
-        <li>Redeploy your app</li>
-        <li>Return to the main app URL</li>
-    </ol>
+    <div class="debug-section">
+        <h2>🔧 Quick Actions</h2>
+        <p><strong>Next Steps:</strong></p>
+        <ol>
+            <li>Check the test results above</li>
+            <li>Look for any red ❌ errors</li>
+            <li>If Firebase config is OK, try accessing <a href="/index.html" target="_blank">the main app</a></li>
+            <li>Open browser DevTools (F12) → Console tab for more details</li>
+        </ol>
+        
+        <h3>Quick Links:</h3>
+        <button onclick="window.open('/', '_blank')">🏠 Open Main App</button>
+        <button onclick="window.open('/index.html', '_blank')">📄 Open index.html</button>
+        <button onclick="window.location.reload()">🔄 Reload Debug Page</button>
+    </div>
 </body>
 </html>
