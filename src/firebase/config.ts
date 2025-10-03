@@ -30,10 +30,38 @@ if (missingVars.length > 0) {
   console.error('🔥 Firebase Configuration Error: Missing environment variables:', missingVars);
   console.error('📝 Please check your .env file or deployment platform environment variables.');
   console.error('💡 See .env.example for required variables.');
+  
+  // Create a fallback configuration to prevent app crash
+  
+  // Show user-friendly error in UI
+  document.addEventListener('DOMContentLoaded', () => {
+    const root = document.getElementById('root');
+    if (root && missingVars.length > 0) {
+      root.innerHTML = `
+        <div style="padding: 2rem; text-align: center; color: #d32f2f; font-family: Arial, sans-serif;">
+          <h2>Configuration Error</h2>
+          <p>Missing Firebase configuration. Please contact the administrator.</p>
+          <details style="margin-top: 1rem;">
+            <summary>Technical Details</summary>
+            <p>Missing environment variables: ${missingVars.join(', ')}</p>
+          </details>
+        </div>
+      `;
+    }
+  });
+  
+  console.warn('Using fallback Firebase config to prevent app crash');
 }
 
 // Initialize Firebase
-const app = initializeApp(firebaseConfig);
+const app = initializeApp(missingVars.length > 0 ? {
+  apiKey: "dummy",
+  authDomain: "dummy.firebaseapp.com", 
+  projectId: "dummy",
+  storageBucket: "dummy.appspot.com",
+  messagingSenderId: "123456789",
+  appId: "1:123456789:web:dummy"
+} : firebaseConfig);
 
 // Export auth synchronously for compatibility with react-firebase-hooks
 export const auth = getAuth(app);
