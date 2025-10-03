@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Deployment Debug</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .env-check { background: #f5f5f5; padding: 10px; margin: 10px 0; border-radius: 4px; }
+        .missing { background: #ffebee; color: #c62828; }
+        .present { background: #e8f5e8; color: #2e7d32; }
+    </style>
+</head>
+<body>
+    <h1>Vercel Deployment Debug</h1>
+    <p>If you see this page on Vercel, the build is working but the React app isn't loading.</p>
+    
+    <h2>Environment Variables Check</h2>
+    <div id="env-status">Checking...</div>
+    
+    <script>
+        const requiredEnvVars = [
+            'VITE_FIREBASE_API_KEY',
+            'VITE_FIREBASE_AUTH_DOMAIN', 
+            'VITE_FIREBASE_PROJECT_ID',
+            'VITE_FIREBASE_STORAGE_BUCKET',
+            'VITE_FIREBASE_MESSAGING_SENDER_ID',
+            'VITE_FIREBASE_APP_ID'
+        ];
+        
+        const envStatus = document.getElementById('env-status');
+        let html = '';
+        let allPresent = true;
+        
+        requiredEnvVars.forEach(varName => {
+            // In production, Vite env vars are replaced at build time
+            const value = import.meta.env[varName];
+            const isPresent = value && value !== 'undefined';
+            const className = isPresent ? 'present' : 'missing';
+            allPresent = allPresent && isPresent;
+            
+            html += `<div class="env-check ${className}">
+                ${varName}: ${isPresent ? '✅ Present' : '❌ Missing'}
+            </div>`;
+        });
+        
+        if (allPresent) {
+            html += '<p style="color: green;">✅ All environment variables are present!</p>';
+        } else {
+            html += '<p style="color: red;">❌ Some environment variables are missing. This will cause the app to fail.</p>';
+        }
+        
+        envStatus.innerHTML = html;
+    </script>
+    
+    <h2>Quick Links</h2>
+    <ul>
+        <li><a href="/index.html">Try Main App</a></li>
+        <li><a href="/">Go to Root</a></li>
+    </ul>
+    
+    <h2>Instructions</h2>
+    <ol>
+        <li>Go to Vercel Dashboard → Your Project → Settings → Environment Variables</li>
+        <li>Add all missing Firebase environment variables shown above</li>
+        <li>Redeploy your app</li>
+        <li>Return to the main app URL</li>
+    </ol>
+</body>
+</html>

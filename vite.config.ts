@@ -34,11 +34,12 @@ export default defineConfig(async () => {
       cors: true
     },
     build: {
+      chunkSizeWarningLimit: 1000, // Increase limit to 1000kb to suppress warnings
       rollupOptions: {
         output: {
           manualChunks(id: string) {
             if (id.includes('node_modules')) {
-              // Split Firebase by sub-package
+              // Split Firebase by sub-package for better caching
               if (id.includes('firebase')) {
                 if (/[\\/]firebase[\\/]auth/.test(id)) return 'vendor-firebase-auth';
                 if (/[\\/]firebase[\\/]firestore/.test(id)) return 'vendor-firebase-firestore';
